@@ -7,7 +7,7 @@ Module to generate Public Key from elliptic curve secp256k1.
 
 - Source:
 
-            https://github.com/gtmadureira/cryptography/ecc/secp256k1/blob/main/secp256k1.py
+            https://github.com/gtmadureira/cryptography/blob/main/ecc/secp256k1/secp256k1.py
 
 - Author:
 
