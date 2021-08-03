@@ -1,31 +1,69 @@
 """
+[ LICENSE ] ( GNU GPLv3 ) :
+
+SECP256K1 - Elliptic Curve Cryptography (ECC).
+Copyright (C) 2021  Gustavo Madureira
+
+This program is free software: you can redistribute it and/or modify
+it under the terms of the GNU General Public License as published by
+the Free Software Foundation, either version 3 of the License, or
+(at your option) any later version.
+
+This program is distributed in the hope that it will be useful,
+but WITHOUT ANY WARRANTY; without even the implied warranty of
+MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+GNU General Public License for more details.
+
+You should have received a copy of the GNU General Public License
+along with this program.  If not, see <https://www.gnu.org/licenses/>.
+
+
+[ ABOUT ] :
+
 Elliptic Curve Cryptography (ECC)
 
 Module to generate Public Key from elliptic curve secp256k1.
 
 (Curve used in Bitcoin cryptocurrency)
 
-- Source:
+    Source:
 
             https://github.com/gtmadureira/cryptography/blob/main/ecc/secp256k1/secp256k1.py
 
-- Author:
+    Author:
 
             • Gustavo Madureira (gtmadureira@gmail.com)
             • https://gtmadureira.github.io/
 """
 
 
+from time import sleep
 from typing import Tuple
+from platform import system
+from subprocess import check_call as run_command
 
 
 # Type Hints.
 Point = Tuple[int, int]
 
 
+# Tests the operating system type and sets the screen clear command.
+if system() == "Windows":
+
+    def clear() -> None:
+        """Screen clear command for Windows operating system."""
+        run_command("cls")
+
+elif system() == "Darwin" or system() == "Linux":
+
+    def clear() -> None:
+        """Screen clear command for macOS/Linux operating system."""
+        run_command("clear")
+
+
 """
-    Mathematical domain parameters of the elliptic curve secp256k1.
-    Source: https://www.secg.org/sec2-v2.pdf
+        Mathematical domain parameters of the elliptic curve secp256k1.
+        Source: https://www.secg.org/sec2-v2.pdf
 """
 
 # Finite field (Fp):
@@ -58,9 +96,9 @@ def modular_inverse(k: int, p: int) -> int:
         raise ZeroDivisionError("Division by zero!")
     if k < 0:
         return p - modular_inverse(-k, p)
+    r, old_r = (p, k)
     s, old_s = (0, 1)
     t, old_t = (1, 0)
-    r, old_r = (p, k)
     while r != 0:
         quotient = old_r // r
         old_r, r = (r, old_r - quotient * r)
@@ -70,7 +108,8 @@ def modular_inverse(k: int, p: int) -> int:
     assert gcd == 1
     assert (k * x) % p == 1
     assert (p * y) % k == 1
-    return x % p
+    result = x % p
+    return result
 
 
 def is_on_curve(point: Point) -> bool:
@@ -97,9 +136,9 @@ def ec_point_doubling(point_P: Point) -> Point:
              modular_inverse(2 * py, _FP_CURVE_)) % _FP_CURVE_
     rx = (slope * slope - 2 * px) % _FP_CURVE_
     ry = (slope * (px - rx) - py) % _FP_CURVE_
-    new_point = (rx, ry)
-    assert is_on_curve(new_point)
-    return new_point
+    result = (rx, ry)
+    assert is_on_curve(result)
+    return result
 
 
 def ec_point_addition(point_P: Point, point_Q: Point) -> Point:
@@ -123,9 +162,9 @@ def ec_point_addition(point_P: Point, point_Q: Point) -> Point:
     slope = ((py - qy) * modular_inverse(px - qx, _FP_CURVE_)) % _FP_CURVE_
     rx = (slope * slope - px - qx) % _FP_CURVE_
     ry = (slope * (px - rx) - py) % _FP_CURVE_
-    new_point = (rx, ry)
-    assert is_on_curve(new_point)
-    return new_point
+    result = (rx, ry)
+    assert is_on_curve(result)
+    return result
 
 
 def ec_point_multiplication(scalar: int,
@@ -160,6 +199,16 @@ if __name__ == "__main__":
             i = "03"
         else:
             i = "02"
+        sleep(0.75)
+        clear()
+        print("\n\033[92m" +
+              "\t\tBitcoin Wallet Hack  Copyright (C) 2021  "
+              "Gustavo Madureira" + "\n"
+              "\t\tThis program comes with ABSOLUTELY NO WARRANTY." + "\n"
+              "\t\tThis is free software, and you are welcome to "
+              "redistribute it" + "\n"
+              "\t\tunder certain conditions." +
+              "\033[0m")
         print("\n\033[92m" +
               "           Point Number: " + str(private_key) + "\n"
               "            Private Key: " +
