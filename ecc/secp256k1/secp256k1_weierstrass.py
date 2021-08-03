@@ -1,7 +1,7 @@
 """
 [ LICENSE ] ( GNU GPLv3 ) :
 
-SECP256K1 - Elliptic Curve Cryptography (ECC).
+SECP256K1 at Weierstrass Form - Elliptic Curve Cryptography (ECC).
 Copyright (C) 2021  Gustavo Madureira
 
 This program is free software: you can redistribute it and/or modify
@@ -22,13 +22,14 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
 Elliptic Curve Cryptography (ECC)
 
-Module to generate Public Key from elliptic curve secp256k1.
+Module to generate Public Key from elliptic curve secp256k1,
+using Weierstrass Form.
 
 (Curve used in Bitcoin cryptocurrency)
 
     Source:
 
-            https://github.com/gtmadureira/cryptography/blob/main/ecc/secp256k1/secp256k1.py
+            https://github.com/gtmadureira/cryptography/blob/main/ecc/secp256k1/secp256k1_weierstrass.py
 
     Author:
 
@@ -95,7 +96,8 @@ def modular_inverse(k: int, p: int) -> int:
     if k == 0:
         raise ZeroDivisionError("Division by zero!")
     if k < 0:
-        return p - modular_inverse(-k, p)
+        result = p - modular_inverse(-k, p)
+        return result
     r, old_r = (p, k)
     s, old_s = (0, 1)
     t, old_t = (1, 0)
@@ -115,10 +117,10 @@ def modular_inverse(k: int, p: int) -> int:
 def is_on_curve(point: Point) -> bool:
     """Returns True if the given point lies on the elliptic curve."""
     if point is None:
-        return True
+        result = True
+        return result
     px, py = point
-    result = (py * py - px * px * px - _A_CURVE_ *
-              px - _B_CURVE) % _FP_CURVE_ == 0
+    result = (py ** 2 - px ** 3 - _A_CURVE_ * px - _B_CURVE) % _FP_CURVE_ == 0
     return result
 
 
@@ -130,11 +132,12 @@ def ec_point_doubling(point_P: Point) -> Point:
     """
     assert is_on_curve(point_P)
     if point_P is None:
-        return None  # type: ignore
+        result = None
+        return result  # type: ignore
     px, py = point_P
-    slope = ((3 * px * px + _A_CURVE_) *
+    slope = ((3 * px ** 2 + _A_CURVE_) *
              modular_inverse(2 * py, _FP_CURVE_)) % _FP_CURVE_
-    rx = (slope * slope - 2 * px) % _FP_CURVE_
+    rx = (slope ** 2 - 2 * px) % _FP_CURVE_
     ry = (slope * (px - rx) - py) % _FP_CURVE_
     result = (rx, ry)
     assert is_on_curve(result)
@@ -150,17 +153,21 @@ def ec_point_addition(point_P: Point, point_Q: Point) -> Point:
     assert is_on_curve(point_P)
     assert is_on_curve(point_Q)
     if point_P is None:
-        return point_Q
+        result = point_Q
+        return result
     if point_Q is None:
-        return point_P
+        result = point_P
+        return result
     px, py = point_P
     qx, qy = point_Q
     if px == qx and py != qy:
-        return None  # type: ignore
+        result = None
+        return result  # type: ignore
     if px == qx and py == qy:
-        return ec_point_doubling(point_P)
+        result = ec_point_doubling(point_P)
+        return result
     slope = ((py - qy) * modular_inverse(px - qx, _FP_CURVE_)) % _FP_CURVE_
-    rx = (slope * slope - px - qx) % _FP_CURVE_
+    rx = (slope ** 2 - px - qx) % _FP_CURVE_
     ry = (slope * (px - rx) - py) % _FP_CURVE_
     result = (rx, ry)
     assert is_on_curve(result)
@@ -176,9 +183,11 @@ def ec_point_multiplication(scalar: int,
     """
     assert is_on_curve(point)
     if not 0 < scalar < _N_CURVE_:
-        return None  # type: ignore
+        result = None
+        return result  # type: ignore
     if point is None:
-        return None  # type: ignore
+        result = None
+        return result  # type: ignore
     scalarbin = bin(scalar)[2:]
     result = None
     current = point
@@ -199,10 +208,10 @@ if __name__ == "__main__":
             i = "03"
         else:
             i = "02"
-        sleep(0.75)
+        sleep(0.0)
         clear()
         print("\n\033[92m" +
-              "\t\tBitcoin Wallet Hack  Copyright (C) 2021  "
+              "\t\tSECP256K1 at Weierstrass Form  Copyright (C) 2021  "
               "Gustavo Madureira" + "\n"
               "\t\tThis program comes with ABSOLUTELY NO WARRANTY." + "\n"
               "\t\tThis is free software, and you are welcome to "
