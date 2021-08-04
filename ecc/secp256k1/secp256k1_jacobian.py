@@ -73,12 +73,12 @@ _FP_CURVE_ = 0xFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFEFFFFFC2F
 
 # The elliptic curve: (y^2 = x^3 + ax + b) over Fp is defined by:
 _A_CURVE_ = 0x0000000000000000000000000000000000000000000000000000000000000000
-_B_CURVE = 0x0000000000000000000000000000000000000000000000000000000000000007
+_B_CURVE_ = 0x0000000000000000000000000000000000000000000000000000000000000007
 
 # The generator point in uncompressed form is:
 _GX_CURVE_ = 0x79BE667EF9DCBBAC55A06295CE870B07029BFCDB2DCE28D959F2815B16F81798
 _GY_CURVE_ = 0x483ADA7726A3C4655DA4FBFC0E1108A8FD17B448A68554199C47D08FFB10D4B8
-_GENERATOR_POINT_CURVE: Point = (_GX_CURVE_, _GY_CURVE_)
+_GENERATOR_POINT_CURVE_: Point = (_GX_CURVE_, _GY_CURVE_)
 
 # Finally the order of generator point and the cofactor are:
 _N_CURVE_ = 0xFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFEBAAEDCE6AF48A03BBFD25E8CD0364141
@@ -118,13 +118,29 @@ def modular_inverse(k: int, p: int) -> int:
     return result
 
 
+def is_on_curve(point: Point) -> bool:
+    """Returns True if the given point lies on the elliptic curve."""
+    if point is None:
+        result = True
+        return result
+    xP, yP = point
+    result = (yP ** 2 - xP ** 3 - _A_CURVE_ * xP - _B_CURVE_) % _FP_CURVE_ == 0
+    return result
+
+
 def to_jacobian(point: Point) -> Jacobian_Coordinate:
+    """Convert from Weierstrass form to Jacobian form."""
     o = (point[0], point[1], 1)
     result = o
     return result
 
 
 def jacobian_double(point_P: Jacobian_Coordinate) -> Jacobian_Coordinate:
+    """
+    Point doubling in elliptic curve.
+
+    It doubles Point-P.
+    """
     if not point_P[1]:
         result = (0, 0, 0)
         return result
@@ -140,6 +156,11 @@ def jacobian_double(point_P: Jacobian_Coordinate) -> Jacobian_Coordinate:
 
 def jacobian_add(point_P: Jacobian_Coordinate,
                  point_Q: Jacobian_Coordinate) -> Jacobian_Coordinate:
+    """
+    Point addition in elliptic curve.
+
+    It adds Point-P with Point-Q.
+    """
     if not point_P[1]:
         result = point_Q
         return result
@@ -169,6 +190,7 @@ def jacobian_add(point_P: Jacobian_Coordinate,
 
 
 def from_jacobian(point: Jacobian_Coordinate) -> Point:
+    """Convert from Jacobian form to Weierstrass form."""
     z = modular_inverse(point[2], _FP_CURVE_)
     result = ((point[0] * z ** 2) % _FP_CURVE_,
               (point[1] * z ** 3) % _FP_CURVE_)
@@ -177,6 +199,11 @@ def from_jacobian(point: Jacobian_Coordinate) -> Point:
 
 def jacobian_multiply(point: Jacobian_Coordinate,
                       scalar: int) -> Jacobian_Coordinate:
+    """
+    Point multiplication in elliptic curve.
+
+    It doubles Point-P and adds Point-P with Point-Q.
+    """
     result = None
     if point[1] == 0 or scalar == 0:
         result = (0, 0, 1)
@@ -198,12 +225,21 @@ def jacobian_multiply(point: Jacobian_Coordinate,
 
 
 def ec_point_multiplication(scalar: int,
-                            point: Point = _GENERATOR_POINT_CURVE) -> Point:
+                            point: Point = _GENERATOR_POINT_CURVE_) -> Point:
+    """
+    It prepares the point, from Weierstrass format converting to
+    Jacobian coordinate before starting the multiplication, and at the
+    end converts it again but from Jacobian coordinate to Weierstrass
+    format.
+    """
+    assert is_on_curve(point)
     result = from_jacobian(jacobian_multiply(to_jacobian(point), scalar))
+    assert is_on_curve(result)
     return result
 
 
 if __name__ == "__main__":
+    # Elliptic curve point multiplication test.
     private_key = 1
     while True:
         public_key = ec_point_multiplication(private_key)

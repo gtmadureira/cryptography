@@ -72,12 +72,12 @@ _FP_CURVE_ = 0xFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFEFFFFFC2F
 
 # The elliptic curve: (y^2 = x^3 + ax + b) over Fp is defined by:
 _A_CURVE_ = 0x0000000000000000000000000000000000000000000000000000000000000000
-_B_CURVE = 0x0000000000000000000000000000000000000000000000000000000000000007
+_B_CURVE_ = 0x0000000000000000000000000000000000000000000000000000000000000007
 
 # The generator point in uncompressed form is:
 _GX_CURVE_ = 0x79BE667EF9DCBBAC55A06295CE870B07029BFCDB2DCE28D959F2815B16F81798
 _GY_CURVE_ = 0x483ADA7726A3C4655DA4FBFC0E1108A8FD17B448A68554199C47D08FFB10D4B8
-_GENERATOR_POINT_CURVE: Point = (_GX_CURVE_, _GY_CURVE_)
+_GENERATOR_POINT_CURVE_: Point = (_GX_CURVE_, _GY_CURVE_)
 
 # Finally the order of generator point and the cofactor are:
 _N_CURVE_ = 0xFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFEBAAEDCE6AF48A03BBFD25E8CD0364141
@@ -119,8 +119,8 @@ def is_on_curve(point: Point) -> bool:
     if point is None:
         result = True
         return result
-    px, py = point
-    result = (py ** 2 - px ** 3 - _A_CURVE_ * px - _B_CURVE) % _FP_CURVE_ == 0
+    xP, yP = point
+    result = (yP ** 2 - xP ** 3 - _A_CURVE_ * xP - _B_CURVE_) % _FP_CURVE_ == 0
     return result
 
 
@@ -134,12 +134,12 @@ def ec_point_doubling(point_P: Point) -> Point:
     if point_P is None:
         result = None
         return result  # type: ignore
-    px, py = point_P
-    slope = ((3 * px ** 2 + _A_CURVE_) *
-             modular_inverse(2 * py, _FP_CURVE_)) % _FP_CURVE_
-    rx = (slope ** 2 - 2 * px) % _FP_CURVE_
-    ry = (slope * (px - rx) - py) % _FP_CURVE_
-    result = (rx, ry)
+    xP, yP = point_P
+    slope = ((3 * xP ** 2 + _A_CURVE_) *
+             modular_inverse(2 * yP, _FP_CURVE_)) % _FP_CURVE_
+    xR = (slope ** 2 - 2 * xP) % _FP_CURVE_
+    yR = (slope * (xP - xR) - yP) % _FP_CURVE_
+    result = (xR, yR)
     assert is_on_curve(result)
     return result
 
@@ -158,24 +158,24 @@ def ec_point_addition(point_P: Point, point_Q: Point) -> Point:
     if point_Q is None:
         result = point_P
         return result
-    px, py = point_P
-    qx, qy = point_Q
-    if px == qx and py != qy:
+    xP, yP = point_P
+    xQ, yQ = point_Q
+    if xP == xQ and yP != yQ:
         result = None
         return result  # type: ignore
-    if px == qx and py == qy:
+    if xP == xQ and yP == yQ:
         result = ec_point_doubling(point_P)
         return result
-    slope = ((py - qy) * modular_inverse(px - qx, _FP_CURVE_)) % _FP_CURVE_
-    rx = (slope ** 2 - px - qx) % _FP_CURVE_
-    ry = (slope * (px - rx) - py) % _FP_CURVE_
-    result = (rx, ry)
+    slope = ((yQ - yP) * modular_inverse(xQ - xP, _FP_CURVE_)) % _FP_CURVE_
+    xR = (slope ** 2 - xP - xQ) % _FP_CURVE_
+    yR = (slope * (xP - xR) - yP) % _FP_CURVE_
+    result = (xR, yR)
     assert is_on_curve(result)
     return result
 
 
 def ec_point_multiplication(scalar: int,
-                            point: Point = _GENERATOR_POINT_CURVE) -> Point:
+                            point: Point = _GENERATOR_POINT_CURVE_) -> Point:
     """
     Point multiplication in elliptic curve.
 
@@ -201,6 +201,7 @@ def ec_point_multiplication(scalar: int,
 
 
 if __name__ == "__main__":
+    # Elliptic curve point multiplication test.
     private_key = 1
     while True:
         public_key = ec_point_multiplication(private_key)
