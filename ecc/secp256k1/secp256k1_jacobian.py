@@ -247,7 +247,7 @@ if __name__ == "__main__":
             i = "03"
         else:
             i = "02"
-        sleep(0.0)
+        sleep(0.65)
         clear()
         print("\n\033[92m" +
               "\t\tSECP256K1 at Jacobian Form  Copyright (C) 2021  "
