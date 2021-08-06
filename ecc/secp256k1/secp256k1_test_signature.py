@@ -20,7 +20,7 @@ def random_secure_number():
 
 random_number = random_secure_number()
 public_key = ec_point_multiplication(private_key)
-message = "This is a test."
+message = "My name is Gustavo Madureira and this is a test message."
 message_hash_hex = sha256(message.encode("utf-8")).hexdigest()
 message_hash_int = int("0x" + message_hash_hex, 16)
 
@@ -38,15 +38,15 @@ u1 = ec_point_multiplication((message_hash_int * w) % _N_CURVE_)
 u2 = ec_point_multiplication((r * w) % _N_CURVE_, public_key)
 x, y = ec_point_addition(u1, u2)
 if r == x:
-    result = "\n          \033[92m[✔] Good signature\033[0m"
+    result = "\t\t\033[92m[✔] Good signature\033[0m"
 else:
-    result = "\n          \033[95m[X] Bad signature\033[0m"
+    result = "\t\t\033[95m[X] Bad signature\033[0m"
 
 
 print("\n Private Key: " + hex(private_key)[2:].zfill(64).upper() + "\n"
       "\n  Public Key: X = " + hex(public_key[0])[2:].zfill(64).upper() + "\n"
       "              Y = " + hex(public_key[1])[2:].zfill(64).upper() + "\n"
-      "\n     Message: This is a test." + "\n"
+      "\n     Message: " + message + "\n"
       "\nMessage Hash: " + message_hash_hex.upper() + "\n"
       "\n   Signature: R = " + hex(r)[2:].zfill(64).upper() + "\n"
       "              S = " + hex(s)[2:].zfill(64).upper() + "\n"
