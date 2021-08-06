@@ -118,13 +118,55 @@ def modular_inverse(k: int, p: int) -> int:
     return result
 
 
+def is_infinite(point: Point) -> bool:
+    """
+    Returns whether or not it is the point at infinity in elliptic
+    curve.
+    """
+    result = point is None
+    return result
+
+
 def is_on_curve(point: Point) -> bool:
     """Returns True if the given point lies on the elliptic curve."""
-    if point is None:
+    if is_infinite(point):
         result = True
         return result
-    xP, yP = point
-    result = (yP ** 2 - xP ** 3 - _A_CURVE_ * xP - _B_CURVE_) % _FP_CURVE_ == 0
+    xp, yp = point
+    result = (yp ** 2 - xp ** 3 - _A_CURVE_ * xp - _B_CURVE_) % _FP_CURVE_ == 0
+    return result
+
+
+def x(point: Point) -> int:
+    """
+    Refer to the x coordinate of a point (assuming it is not infinity),
+    then returns this value.
+    """
+    assert not is_infinite(point)
+    assert is_on_curve(point)
+    result = point[0]
+    return result
+
+
+def y(point: Point) -> int:
+    """
+    Refer to the y coordinate of a point (assuming it is not infinity),
+    then returns this value.
+    """
+    assert not is_infinite(point)
+    assert is_on_curve(point)
+    result = point[1]
+    return result
+
+
+def has_even_y(point: Point) -> bool:
+    """
+    Where the point is not is_infinite(point),
+    it returns y(point) mod 2 = 0.
+    """
+    assert not is_infinite(point)
+    assert is_on_curve(point)
+    result = y(point) % 2 == 0
     return result
 
 
@@ -243,10 +285,10 @@ if __name__ == "__main__":
     private_key = 1
     while True:
         public_key = ec_point_multiplication(private_key)
-        if public_key[1] % 2 == 1:
-            i = "03"
-        else:
+        if has_even_y(public_key):
             i = "02"
+        else:
+            i = "03"
         sleep(0.65)
         clear()
         print("\n\033[92m" +
@@ -262,9 +304,9 @@ if __name__ == "__main__":
               "            Private Key: " +
               hex(private_key)[2:].zfill(64).upper() + "\n"
               "Uncompressed Public Key: " + "04" +
-              hex(public_key[0])[2:].zfill(64).upper() +
-              hex(public_key[1])[2:].zfill(64).upper() + "\n"
+              hex(x(public_key))[2:].zfill(64).upper() +
+              hex(y(public_key))[2:].zfill(64).upper() + "\n"
               "  Compressed Public Key: " + i +
-              hex(public_key[0])[2:].zfill(64).upper() + "\n" +
+              hex(x(public_key))[2:].zfill(64).upper() + "\n" +
               "\033[0m")
         private_key += 1

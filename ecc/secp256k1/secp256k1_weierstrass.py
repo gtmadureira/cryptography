@@ -98,9 +98,9 @@ def modular_inverse(k: int, p: int) -> int:
     if k < 0:
         result = p - modular_inverse(-k, p)
         return result
-    r, old_r = (p, k)
-    s, old_s = (0, 1)
-    t, old_t = (1, 0)
+    r, old_r = (k, p)
+    s, old_s = (1, 0)
+    t, old_t = (0, 1)
     while r != 0:
         quotient = old_r // r
         old_r, r = (r, old_r - quotient * r)
@@ -108,68 +108,110 @@ def modular_inverse(k: int, p: int) -> int:
         old_t, t = (t, old_t - quotient * t)
     gcd, x, y = (old_r, old_s, old_t)
     assert gcd == 1
-    assert (k * x) % p == 1
-    assert (p * y) % k == 1
+    assert (x * k) % p == 1
+    assert (y * p) % k == 1
     result = x % p
+    return result
+
+
+def is_infinite(point: Point) -> bool:
+    """
+    Returns whether or not it is the point at infinity in elliptic
+    curve.
+    """
+    result = point is None
     return result
 
 
 def is_on_curve(point: Point) -> bool:
     """Returns True if the given point lies on the elliptic curve."""
-    if point is None:
+    if is_infinite(point):
         result = True
         return result
-    xP, yP = point
-    result = (yP ** 2 - xP ** 3 - _A_CURVE_ * xP - _B_CURVE_) % _FP_CURVE_ == 0
+    xp, yp = point
+    result = (yp ** 2 - xp ** 3 - _A_CURVE_ * xp - _B_CURVE_) % _FP_CURVE_ == 0
     return result
 
 
-def ec_point_doubling(point_P: Point) -> Point:
+def x(point: Point) -> int:
+    """
+    Refer to the x coordinate of a point (assuming it is not infinity),
+    then returns this value.
+    """
+    assert not is_infinite(point)
+    assert is_on_curve(point)
+    result = point[0]
+    return result
+
+
+def y(point: Point) -> int:
+    """
+    Refer to the y coordinate of a point (assuming it is not infinity),
+    then returns this value.
+    """
+    assert not is_infinite(point)
+    assert is_on_curve(point)
+    result = point[1]
+    return result
+
+
+def has_even_y(point: Point) -> bool:
+    """
+    Where the point is not is_infinite(point),
+    it returns y(point) mod 2 = 0.
+    """
+    assert not is_infinite(point)
+    assert is_on_curve(point)
+    result = y(point) % 2 == 0
+    return result
+
+
+def ec_point_doubling(point_p: Point) -> Point:
     """
     Point doubling in elliptic curve.
 
     It doubles Point-P.
     """
-    assert is_on_curve(point_P)
-    if point_P is None:
+    assert is_on_curve(point_p)
+    if point_p is None:
         result = None
         return result  # type: ignore
-    xP, yP = point_P
-    slope = ((3 * xP ** 2 + _A_CURVE_) *
-             modular_inverse(2 * yP, _FP_CURVE_)) % _FP_CURVE_
-    xR = (slope ** 2 - 2 * xP) % _FP_CURVE_
-    yR = (slope * (xP - xR) - yP) % _FP_CURVE_
-    result = (xR, yR)
+    xp, yp = point_p
+    slope = ((3 * xp ** 2 + _A_CURVE_) *
+             modular_inverse(2 * yp, _FP_CURVE_)) % _FP_CURVE_
+    xr = (slope ** 2 - 2 * xp) % _FP_CURVE_
+    yr = (slope * (xp - xr) - yp) % _FP_CURVE_
+    result = (xr, yr)
     assert is_on_curve(result)
     return result
 
 
-def ec_point_addition(point_P: Point, point_Q: Point) -> Point:
+def ec_point_addition(point_p: Point, point_q: Point) -> Point:
     """
     Point addition in elliptic curve.
 
     It adds Point-P with Point-Q.
     """
-    assert is_on_curve(point_P)
-    assert is_on_curve(point_Q)
-    if point_P is None:
-        result = point_Q
+    assert is_on_curve(point_p)
+    assert is_on_curve(point_q)
+    if point_p is None:
+        result = point_q
         return result
-    if point_Q is None:
-        result = point_P
+    if point_q is None:
+        result = point_p
         return result
-    xP, yP = point_P
-    xQ, yQ = point_Q
-    if xP == xQ and yP != yQ:
+    xp, yp = point_p
+    xq, yq = point_q
+    if xp == xq and yp != yq:
         result = None
         return result  # type: ignore
-    if xP == xQ and yP == yQ:
-        result = ec_point_doubling(point_P)
+    if xp == xq and yp == yq:
+        result = ec_point_doubling(point_p)
         return result
-    slope = ((yQ - yP) * modular_inverse(xQ - xP, _FP_CURVE_)) % _FP_CURVE_
-    xR = (slope ** 2 - xP - xQ) % _FP_CURVE_
-    yR = (slope * (xP - xR) - yP) % _FP_CURVE_
-    result = (xR, yR)
+    slope = ((yq - yp) * modular_inverse(xq - xp, _FP_CURVE_)) % _FP_CURVE_
+    xr = (slope ** 2 - xp - xq) % _FP_CURVE_
+    yr = (slope * (xp - xr) - yp) % _FP_CURVE_
+    result = (xr, yr)
     assert is_on_curve(result)
     return result
 
@@ -205,10 +247,10 @@ if __name__ == "__main__":
     private_key = 1
     while True:
         public_key = ec_point_multiplication(private_key)
-        if public_key[1] % 2 == 1:
-            i = "03"
-        else:
+        if has_even_y(public_key):
             i = "02"
+        else:
+            i = "03"
         sleep(0.65)
         clear()
         print("\n\033[92m" +
@@ -224,9 +266,9 @@ if __name__ == "__main__":
               "            Private Key: " +
               hex(private_key)[2:].zfill(64).upper() + "\n"
               "Uncompressed Public Key: " + "04" +
-              hex(public_key[0])[2:].zfill(64).upper() +
-              hex(public_key[1])[2:].zfill(64).upper() + "\n"
+              hex(x(public_key))[2:].zfill(64).upper() +
+              hex(y(public_key))[2:].zfill(64).upper() + "\n"
               "  Compressed Public Key: " + i +
-              hex(public_key[0])[2:].zfill(64).upper() + "\n" +
+              hex(x(public_key))[2:].zfill(64).upper() + "\n" +
               "\033[0m")
         private_key += 1
