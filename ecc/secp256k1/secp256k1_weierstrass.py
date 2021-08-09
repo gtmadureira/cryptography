@@ -79,9 +79,12 @@ _GX_CURVE_ = 0x79BE667EF9DCBBAC55A06295CE870B07029BFCDB2DCE28D959F2815B16F81798
 _GY_CURVE_ = 0x483ADA7726A3C4655DA4FBFC0E1108A8FD17B448A68554199C47D08FFB10D4B8
 _GENERATOR_POINT_CURVE_: Point = (_GX_CURVE_, _GY_CURVE_)
 
-# Finally the order of generator point and the cofactor are:
+# Order of generator point and the cofactor are:
 _N_CURVE_ = 0xFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFEBAAEDCE6AF48A03BBFD25E8CD0364141
 _H_CURVE_ = 0x0000000000000000000000000000000000000000000000000000000000000001
+
+# Definition for a point that points to infinity:
+_INFINITE_POINT_CURVE_ = None
 
 
 def modular_inverse(k: int, p: int) -> int:
@@ -119,7 +122,7 @@ def is_infinite(point: Point) -> bool:
     Returns whether or not it is the point at infinity in elliptic
     curve.
     """
-    result = point is None
+    result = point is _INFINITE_POINT_CURVE_
     return result
 
 
@@ -173,8 +176,8 @@ def ec_point_doubling(point_p: Point) -> Point:
     It doubles Point-P.
     """
     assert is_on_curve(point_p)
-    if point_p is None:
-        result = None
+    if is_infinite(point_p):
+        result = _INFINITE_POINT_CURVE_
         return result  # type: ignore
     xp, yp = point_p
     slope = ((3 * xp ** 2 + _A_CURVE_) *
@@ -194,17 +197,17 @@ def ec_point_addition(point_p: Point, point_q: Point) -> Point:
     """
     assert is_on_curve(point_p)
     assert is_on_curve(point_q)
-    if point_p is None:
+    if is_infinite(point_p):
         result = point_q
         return result
-    if point_q is None:
+    if is_infinite(point_q):
         result = point_p
         return result
     xp, yp = point_p
     xq, yq = point_q
     if xp == xq and yp != yq:
-        result = None
-        return result  # type: ignore
+        result = _INFINITE_POINT_CURVE_  # type: ignore
+        return result
     if xp == xq and yp == yq:
         result = ec_point_doubling(point_p)
         return result
@@ -225,10 +228,9 @@ def ec_point_multiplication(scalar: int,
     """
     assert is_on_curve(point)
     if not 0 < scalar < _N_CURVE_:
-        result = None
-        return result  # type: ignore
-    if point is None:
-        result = None
+        raise Exception("Invalid Scalar/Private Key !")
+    if is_infinite(point):
+        result = _INFINITE_POINT_CURVE_
         return result  # type: ignore
     scalarbin = bin(scalar)[2:]
     result = None

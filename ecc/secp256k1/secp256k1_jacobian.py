@@ -84,6 +84,9 @@ _GENERATOR_POINT_CURVE_: Point = (_GX_CURVE_, _GY_CURVE_)
 _N_CURVE_ = 0xFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFEBAAEDCE6AF48A03BBFD25E8CD0364141
 _H_CURVE_ = 0x0000000000000000000000000000000000000000000000000000000000000001
 
+# Definition for a point that points to infinity:
+_INFINITE_POINT_CURVE_ = None
+
 
 def modular_inverse(k: int, p: int) -> int:
     """
@@ -123,7 +126,7 @@ def is_infinite(point: Point) -> bool:
     Returns whether or not it is the point at infinity in elliptic
     curve.
     """
-    result = point is None
+    result = point is _INFINITE_POINT_CURVE_
     return result
 
 
@@ -177,7 +180,7 @@ def to_jacobian(point: Point) -> Jacobian_Coordinate:
     return result
 
 
-def jacobian_double(point_P: Jacobian_Coordinate) -> Jacobian_Coordinate:
+def jacobian_doubling(point_P: Jacobian_Coordinate) -> Jacobian_Coordinate:
     """
     Point doubling in elliptic curve.
 
@@ -196,8 +199,8 @@ def jacobian_double(point_P: Jacobian_Coordinate) -> Jacobian_Coordinate:
     return result
 
 
-def jacobian_add(point_P: Jacobian_Coordinate,
-                 point_Q: Jacobian_Coordinate) -> Jacobian_Coordinate:
+def jacobian_addition(point_P: Jacobian_Coordinate,
+                      point_Q: Jacobian_Coordinate) -> Jacobian_Coordinate:
     """
     Point addition in elliptic curve.
 
@@ -217,7 +220,7 @@ def jacobian_add(point_P: Jacobian_Coordinate,
         if S1 != S2:
             result = (0, 0, 1)
             return result
-        result = jacobian_double(point_P)
+        result = jacobian_doubling(point_P)
         return result
     H = U2 - U1
     R = S2 - S1
@@ -239,8 +242,8 @@ def from_jacobian(point: Jacobian_Coordinate) -> Point:
     return result
 
 
-def jacobian_multiply(point: Jacobian_Coordinate,
-                      scalar: int) -> Jacobian_Coordinate:
+def jacobian_multiplication(point: Jacobian_Coordinate,
+                            scalar: int) -> Jacobian_Coordinate:
     """
     Point multiplication in elliptic curve.
 
@@ -254,14 +257,14 @@ def jacobian_multiply(point: Jacobian_Coordinate,
         result = point
         return result
     if scalar < 0 or scalar >= _N_CURVE_:
-        result = jacobian_multiply(point, scalar % _N_CURVE_)
+        result = jacobian_multiplication(point, scalar % _N_CURVE_)
         return result
     if (scalar % 2) == 0:
-        result = jacobian_double(jacobian_multiply(point, scalar // 2))
+        result = jacobian_doubling(jacobian_multiplication(point, scalar // 2))
         return result
     if (scalar % 2) == 1:
-        result = jacobian_add(jacobian_double(
-            jacobian_multiply(point, scalar // 2)), point)
+        result = jacobian_addition(jacobian_doubling(
+            jacobian_multiplication(point, scalar // 2)), point)
         return result
     return result  # type: ignore
 
@@ -275,7 +278,7 @@ def ec_point_multiplication(scalar: int,
     format.
     """
     assert is_on_curve(point)
-    result = from_jacobian(jacobian_multiply(to_jacobian(point), scalar))
+    result = from_jacobian(jacobian_multiplication(to_jacobian(point), scalar))
     assert is_on_curve(result)
     return result
 
