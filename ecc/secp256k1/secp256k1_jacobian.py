@@ -85,7 +85,7 @@ _N_CURVE_ = 0xFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFEBAAEDCE6AF48A03BBFD25E8CD0364141
 _H_CURVE_ = 0x0000000000000000000000000000000000000000000000000000000000000001
 
 # Definition for a point that points to infinity in elliptic curve:
-_INFINITE_POINT_CURVE_ = None
+_POINT_INFINITY_CURVE_ = None
 
 
 def modular_inverse(k: int, p: int) -> int:
@@ -126,7 +126,7 @@ def is_infinite(point: Optional[Point]) -> bool:
     Returns whether or not it is the point at infinity in elliptic
     curve.
     """
-    result = point is _INFINITE_POINT_CURVE_
+    result = point is _POINT_INFINITY_CURVE_
     return result
 
 
