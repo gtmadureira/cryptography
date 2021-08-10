@@ -39,8 +39,8 @@ using Jacobian Form.
 
 
 from time import sleep
-from typing import Tuple
 from platform import system
+from typing import Optional, Tuple
 from subprocess import check_call as run_command
 
 
@@ -80,11 +80,11 @@ _GX_CURVE_ = 0x79BE667EF9DCBBAC55A06295CE870B07029BFCDB2DCE28D959F2815B16F81798
 _GY_CURVE_ = 0x483ADA7726A3C4655DA4FBFC0E1108A8FD17B448A68554199C47D08FFB10D4B8
 _GENERATOR_POINT_CURVE_: Point = (_GX_CURVE_, _GY_CURVE_)
 
-# Finally the order of generator point and the cofactor are:
+# Order of generator point and the cofactor are:
 _N_CURVE_ = 0xFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFEBAAEDCE6AF48A03BBFD25E8CD0364141
 _H_CURVE_ = 0x0000000000000000000000000000000000000000000000000000000000000001
 
-# Definition for a point that points to infinity:
+# Definition for a point that points to infinity in elliptic curve:
 _INFINITE_POINT_CURVE_ = None
 
 
@@ -121,7 +121,7 @@ def modular_inverse(k: int, p: int) -> int:
     return result
 
 
-def is_infinite(point: Point) -> bool:
+def is_infinite(point: Optional[Point]) -> bool:
     """
     Returns whether or not it is the point at infinity in elliptic
     curve.
@@ -130,12 +130,12 @@ def is_infinite(point: Point) -> bool:
     return result
 
 
-def is_on_curve(point: Point) -> bool:
+def is_on_curve(point: Optional[Point]) -> bool:
     """Returns True if the given point lies on the elliptic curve."""
     if is_infinite(point):
         result = True
         return result
-    xp, yp = point
+    xp, yp = point  # type: ignore
     result = (yp ** 2 - xp ** 3 - _A_CURVE_ * xp - _B_CURVE_) % _FP_CURVE_ == 0
     return result
 
@@ -180,56 +180,56 @@ def to_jacobian(point: Point) -> Jacobian_Coordinate:
     return result
 
 
-def jacobian_doubling(point_P: Jacobian_Coordinate) -> Jacobian_Coordinate:
+def jacobian_doubling(point_p: Jacobian_Coordinate) -> Jacobian_Coordinate:
     """
     Point doubling in elliptic curve.
 
     It doubles Point-P.
     """
-    if not point_P[1]:
+    if not point_p[1]:
         result = (0, 0, 0)
         return result
-    ysq = (point_P[1] ** 2) % _FP_CURVE_
-    S = (4 * point_P[0] * ysq) % _FP_CURVE_
-    M = (3 * point_P[0] ** 2 + _A_CURVE_ * point_P[2] ** 4) % _FP_CURVE_
-    nx = (M ** 2 - 2 * S) % _FP_CURVE_
-    ny = (M * (S - nx) - 8 * ysq ** 2) % _FP_CURVE_
-    nz = (2 * point_P[1] * point_P[2]) % _FP_CURVE_
+    ysq = (point_p[1] ** 2) % _FP_CURVE_
+    s = (4 * point_p[0] * ysq) % _FP_CURVE_
+    m = (3 * point_p[0] ** 2 + _A_CURVE_ * point_p[2] ** 4) % _FP_CURVE_
+    nx = (m ** 2 - 2 * s) % _FP_CURVE_
+    ny = (m * (s - nx) - 8 * ysq ** 2) % _FP_CURVE_
+    nz = (2 * point_p[1] * point_p[2]) % _FP_CURVE_
     result = (nx, ny, nz)
     return result
 
 
-def jacobian_addition(point_P: Jacobian_Coordinate,
-                      point_Q: Jacobian_Coordinate) -> Jacobian_Coordinate:
+def jacobian_addition(point_p: Jacobian_Coordinate,
+                      point_q: Jacobian_Coordinate) -> Jacobian_Coordinate:
     """
     Point addition in elliptic curve.
 
     It adds Point-P with Point-Q.
     """
-    if not point_P[1]:
-        result = point_Q
+    if not point_p[1]:
+        result = point_q
         return result
-    if not point_Q[1]:
-        result = point_P
+    if not point_q[1]:
+        result = point_p
         return result
-    U1 = (point_P[0] * point_Q[2] ** 2) % _FP_CURVE_
-    U2 = (point_Q[0] * point_P[2] ** 2) % _FP_CURVE_
-    S1 = (point_P[1] * point_Q[2] ** 3) % _FP_CURVE_
-    S2 = (point_Q[1] * point_P[2] ** 3) % _FP_CURVE_
-    if U1 == U2:
-        if S1 != S2:
+    u1 = (point_p[0] * point_q[2] ** 2) % _FP_CURVE_
+    u2 = (point_q[0] * point_p[2] ** 2) % _FP_CURVE_
+    s1 = (point_p[1] * point_q[2] ** 3) % _FP_CURVE_
+    s2 = (point_q[1] * point_p[2] ** 3) % _FP_CURVE_
+    if u1 == u2:
+        if s1 != s2:
             result = (0, 0, 1)
             return result
-        result = jacobian_doubling(point_P)
+        result = jacobian_doubling(point_p)
         return result
-    H = U2 - U1
-    R = S2 - S1
-    H2 = (H * H) % _FP_CURVE_
-    H3 = (H * H2) % _FP_CURVE_
-    U1H2 = (U1 * H2) % _FP_CURVE_
-    nx = (R ** 2 - H3 - 2 * U1H2) % _FP_CURVE_
-    ny = (R * (U1H2 - nx) - S1 * H3) % _FP_CURVE_
-    nz = (H * point_P[2] * point_Q[2]) % _FP_CURVE_
+    h = u2 - u1
+    r = s2 - s1
+    h2 = (h * h) % _FP_CURVE_
+    h3 = (h * h2) % _FP_CURVE_
+    u1h2 = (u1 * h2) % _FP_CURVE_
+    nx = (r ** 2 - h3 - 2 * u1h2) % _FP_CURVE_
+    ny = (r * (u1h2 - nx) - s1 * h3) % _FP_CURVE_
+    nz = (h * point_p[2] * point_q[2]) % _FP_CURVE_
     result = (nx, ny, nz)
     return result
 
@@ -256,9 +256,6 @@ def jacobian_multiplication(point: Jacobian_Coordinate,
     if scalar == 1:
         result = point
         return result
-    if scalar < 0 or scalar >= _N_CURVE_:
-        result = jacobian_multiplication(point, scalar % _N_CURVE_)
-        return result
     if (scalar % 2) == 0:
         result = jacobian_doubling(jacobian_multiplication(point, scalar // 2))
         return result
@@ -269,15 +266,22 @@ def jacobian_multiplication(point: Jacobian_Coordinate,
     return result  # type: ignore
 
 
-def ec_point_multiplication(scalar: int,
-                            point: Point = _GENERATOR_POINT_CURVE_) -> Point:
+def ec_point_multiplication(
+        scalar: int,
+        point: Optional[Point] = _GENERATOR_POINT_CURVE_) -> Point:
     """
-    It prepares the point, from Weierstrass format converting to
-    Jacobian coordinate before starting the multiplication, and at the
-    end converts it again but from Jacobian coordinate to Weierstrass
-    format.
+    It prepares the generator point, from Weierstrass format converting
+    to Jacobian coordinate before starting the multiplication, and at
+    the end converts it again but from Jacobian coordinate to
+    Weierstrass format.
     """
     assert is_on_curve(point)
+    if not 0 < scalar < _N_CURVE_:
+        raise Exception("Invalid Scalar/Private Key!")
+    if point is None or point[0] == 0 or point[1] == 0:
+        raise Exception("None (Generator/Base Point) has been provided " +
+                        "or points to infinity on the elliptic curve!")
+    result = None
     result = from_jacobian(jacobian_multiplication(to_jacobian(point), scalar))
     assert is_on_curve(result)
     return result

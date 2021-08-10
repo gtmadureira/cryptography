@@ -39,8 +39,8 @@ using Weierstrass Form.
 
 
 from time import sleep
-from typing import Tuple
 from platform import system
+from typing import Optional, Tuple
 from subprocess import check_call as run_command
 
 
@@ -83,7 +83,7 @@ _GENERATOR_POINT_CURVE_: Point = (_GX_CURVE_, _GY_CURVE_)
 _N_CURVE_ = 0xFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFEBAAEDCE6AF48A03BBFD25E8CD0364141
 _H_CURVE_ = 0x0000000000000000000000000000000000000000000000000000000000000001
 
-# Definition for a point that points to infinity:
+# Definition for a point that points to infinity in elliptic curve:
 _INFINITE_POINT_CURVE_ = None
 
 
@@ -117,7 +117,7 @@ def modular_inverse(k: int, p: int) -> int:
     return result
 
 
-def is_infinite(point: Point) -> bool:
+def is_infinite(point: Optional[Point]) -> bool:
     """
     Returns whether or not it is the point at infinity in elliptic
     curve.
@@ -126,12 +126,12 @@ def is_infinite(point: Point) -> bool:
     return result
 
 
-def is_on_curve(point: Point) -> bool:
+def is_on_curve(point: Optional[Point]) -> bool:
     """Returns True if the given point lies on the elliptic curve."""
     if is_infinite(point):
         result = True
         return result
-    xp, yp = point
+    xp, yp = point  # type: ignore
     result = (yp ** 2 - xp ** 3 - _A_CURVE_ * xp - _B_CURVE_) % _FP_CURVE_ == 0
     return result
 
@@ -169,7 +169,7 @@ def has_even_y(point: Point) -> bool:
     return result
 
 
-def ec_point_doubling(point_p: Point) -> Point:
+def ec_point_doubling(point_p: Optional[Point]) -> Optional[Point]:
     """
     Point doubling in elliptic curve.
 
@@ -178,8 +178,11 @@ def ec_point_doubling(point_p: Point) -> Point:
     assert is_on_curve(point_p)
     if is_infinite(point_p):
         result = _INFINITE_POINT_CURVE_
-        return result  # type: ignore
-    xp, yp = point_p
+        return result
+    xp, yp = point_p  # type: ignore
+    if xp == 0 or yp == 0:
+        result = _INFINITE_POINT_CURVE_
+        return result
     slope = ((3 * xp ** 2 + _A_CURVE_) *
              modular_inverse(2 * yp, _FP_CURVE_)) % _FP_CURVE_
     xr = (slope ** 2 - 2 * xp) % _FP_CURVE_
@@ -189,7 +192,8 @@ def ec_point_doubling(point_p: Point) -> Point:
     return result
 
 
-def ec_point_addition(point_p: Point, point_q: Point) -> Point:
+def ec_point_addition(point_p: Optional[Point],
+                      point_q: Optional[Point]) -> Optional[Point]:
     """
     Point addition in elliptic curve.
 
@@ -203,14 +207,18 @@ def ec_point_addition(point_p: Point, point_q: Point) -> Point:
     if is_infinite(point_q):
         result = point_p
         return result
-    xp, yp = point_p
-    xq, yq = point_q
+    xp, yp = point_p  # type: ignore
+    xq, yq = point_q  # type: ignore
     if xp == xq and yp != yq:
-        result = _INFINITE_POINT_CURVE_  # type: ignore
+        result = _INFINITE_POINT_CURVE_
         return result
     if xp == xq and yp == yq:
-        result = ec_point_doubling(point_p)
-        return result
+        if xp == 0 and xq == 0 or yp == 0 and yq == 0:
+            result = _INFINITE_POINT_CURVE_
+            return result
+        else:
+            result = ec_point_doubling(point_p)
+            return result
     slope = ((yq - yp) * modular_inverse(xq - xp, _FP_CURVE_)) % _FP_CURVE_
     xr = (slope ** 2 - xp - xq) % _FP_CURVE_
     yr = (slope * (xp - xr) - yp) % _FP_CURVE_
@@ -219,8 +227,9 @@ def ec_point_addition(point_p: Point, point_q: Point) -> Point:
     return result
 
 
-def ec_point_multiplication(scalar: int,
-                            point: Point = _GENERATOR_POINT_CURVE_) -> Point:
+def ec_point_multiplication(
+        scalar: int,
+        point: Optional[Point] = _GENERATOR_POINT_CURVE_) -> Point:
     """
     Point multiplication in elliptic curve.
 
@@ -228,17 +237,17 @@ def ec_point_multiplication(scalar: int,
     """
     assert is_on_curve(point)
     if not 0 < scalar < _N_CURVE_:
-        raise Exception("Invalid Scalar/Private Key !")
-    if is_infinite(point):
-        result = _INFINITE_POINT_CURVE_
-        return result  # type: ignore
+        raise Exception("Invalid Scalar/Private Key!")
+    if point is None or point[0] == 0 or point[1] == 0:
+        raise Exception("None (Generator/Base Point) has been provided " +
+                        "or points to infinity on the elliptic curve!")
     scalarbin = bin(scalar)[2:]
     result = None
     current = point
     for i in range(1, len(scalarbin)):
-        current = ec_point_doubling(current)
+        current = ec_point_doubling(current)  # type: ignore
         if scalarbin[i] == "1":
-            current = ec_point_addition(point, current)
+            current = ec_point_addition(point, current)  # type: ignore
     result = current
     assert is_on_curve(result)
     return result
