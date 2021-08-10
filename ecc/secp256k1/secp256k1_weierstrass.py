@@ -180,7 +180,7 @@ def ec_point_doubling(point_p: Optional[Point]) -> Optional[Point]:
         result = _INFINITE_POINT_CURVE_
         return result
     xp, yp = point_p  # type: ignore
-    if xp == 0 or yp == 0:
+    if 0 in {xp, yp}:
         result = _INFINITE_POINT_CURVE_
         return result
     slope = ((3 * xp ** 2 + _A_CURVE_) *
@@ -213,7 +213,7 @@ def ec_point_addition(point_p: Optional[Point],
         result = _INFINITE_POINT_CURVE_
         return result
     if xp == xq and yp == yq:
-        if xp == 0 and xq == 0 or yp == 0 and yq == 0:
+        if 0 in {xp, yp}:
             result = _INFINITE_POINT_CURVE_
             return result
         else:
@@ -238,9 +238,11 @@ def ec_point_multiplication(
     assert is_on_curve(point)
     if not 0 < scalar < _N_CURVE_:
         raise Exception("Invalid Scalar/Private Key!")
-    if point is None or point[0] == 0 or point[1] == 0:
-        raise Exception("None (Generator/Base Point) has been provided " +
-                        "or points to infinity on the elliptic curve!")
+    if point is None or 0 in {point[0], point[1]}:
+        raise Exception("""
+            None (Generator/Base Point) has been provided
+            or points to infinity on the elliptic curve!
+            """)
     scalarbin = bin(scalar)[2:]
     result = None
     current = point
@@ -259,27 +261,26 @@ if __name__ == "__main__":
     while True:
         public_key = ec_point_multiplication(private_key)
         if has_even_y(public_key):
-            i = "02"
+            prefix = "02"
         else:
-            i = "03"
+            prefix = "03"
+        data = (str(private_key),
+                hex(private_key)[2:].zfill(64).upper(),
+                hex(x(public_key))[2:].zfill(64).upper(),
+                hex(y(public_key))[2:].zfill(64).upper(),
+                prefix)
+        private_key += 1
         sleep(0.65)
         clear()
-        print("\n\033[92m" +
-              "\t\tSECP256K1 at Weierstrass Form  Copyright (C) 2021  "
-              "Gustavo Madureira" + "\n"
-              "\t\tThis program comes with ABSOLUTELY NO WARRANTY." + "\n"
-              "\t\tThis is free software, and you are welcome to "
-              "redistribute it" + "\n"
-              "\t\tunder certain conditions." +
-              "\033[0m")
-        print("\n\033[92m" +
-              "           Point Number: " + str(private_key) + "\n"
-              "            Private Key: " +
-              hex(private_key)[2:].zfill(64).upper() + "\n"
-              "Uncompressed Public Key: " + "04" +
-              hex(x(public_key))[2:].zfill(64).upper() +
-              hex(y(public_key))[2:].zfill(64).upper() + "\n"
-              "  Compressed Public Key: " + i +
-              hex(x(public_key))[2:].zfill(64).upper() + "\n" +
-              "\033[0m")
-        private_key += 1
+        print(f"""\033[92m
+        SECP256K1 at Weierstrass Form  Copyright (C) 2021  Gustavo Madureira
+        This program comes with ABSOLUTELY NO WARRANTY.
+        This is free software, and you are welcome to redistribute it
+        under certain conditions.
+
+
+            Point Number: {data[0]}
+             Private Key: {data[1]}
+ Uncompressed Public Key: 04{data[2]}{data[3]}
+   Compressed Public Key: {data[4]}{data[2]}
+\033[0m""")
