@@ -38,29 +38,12 @@ using Jacobian Form.
 """
 
 
-from time import sleep
-from platform import system
 from typing import Optional, Tuple
-from subprocess import check_call as run_command
 
 
 # Type Hints.
 Point = Tuple[int, int]
 Jacobian_Coordinate = Tuple[int, int, int]
-
-
-# Tests the operating system type and sets the screen clear command.
-if system() == "Windows":
-
-    def clear() -> None:
-        """Screen clear command for Windows operating system."""
-        run_command("cls")
-
-elif system() == "Darwin" or system() == "Linux":
-
-    def clear() -> None:
-        """Screen clear command for macOS/Linux operating system."""
-        run_command("clear")
 
 
 """
@@ -290,6 +273,24 @@ def ec_point_multiplication(
 
 
 if __name__ == "__main__":
+
+    from time import sleep
+    from platform import system
+    from subprocess import check_call as run_command
+
+    # Tests the operating system type and sets the screen clear command.
+    if system() == "Windows":
+
+        def clear() -> None:
+            """Screen clear command for Windows operating system."""
+            run_command("cls")
+
+    elif system() == "Darwin" or system() == "Linux":
+
+        def clear() -> None:
+            """Screen clear command for macOS/Linux operating system."""
+            run_command("clear")
+
     # Elliptic curve point multiplication test.
     private_key = 1
     while True:
