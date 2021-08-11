@@ -25,8 +25,8 @@ message_hash_hex = sha256(message.encode("utf-8")).hexdigest()
 message_hash_int = int("0x" + message_hash_hex, 16)
 
 # This creates the message signature.
-xS, yS = ec_point_multiplication(random_number)
-r = xS % _N_CURVE_
+xs, ys = ec_point_multiplication(random_number)
+r = xs % _N_CURVE_
 s = ((message_hash_int + r * private_key) *
      (modular_inverse(random_number, _N_CURVE_))) % _N_CURVE_
 
