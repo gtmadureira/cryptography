@@ -162,9 +162,9 @@ def to_jacobian(point: Point) -> Jacobian_Coordinate:
 
     A Jacobian coordinate is represented as (x, y, z).
     """
-    x1, y1 = point
-    x1, y1, z1 = (x1, y1, 1)
-    result = (x1, y1, z1)
+    xp, yp = point
+    xp, yp, zp = (xp, yp, 1)
+    result = (xp, yp, zp)
     return result
 
 
@@ -175,14 +175,14 @@ def from_jacobian(point: Jacobian_Coordinate) -> Optional[Point]:
 
     An affine point is represented as (x, y).
     """
-    x1, y1, z1 = point
-    if z1 == 0:
+    xp, yp, zp = point
+    if zp == 0:
         result = None
         return result
-    inv_1 = modular_inverse(z1, _FP_CURVE_)
+    inv_1 = modular_inverse(zp, _FP_CURVE_)
     inv_2 = (inv_1 ** 2) % _FP_CURVE_
     inv_3 = (inv_2 * inv_1) % _FP_CURVE_
-    result = ((inv_2 * x1) % _FP_CURVE_, (inv_3 * y1) % _FP_CURVE_)
+    result = ((inv_2 * xp) % _FP_CURVE_, (inv_3 * yp) % _FP_CURVE_)
     return result
 
 
@@ -194,22 +194,22 @@ def jacobian_point_doubling(
 
     It doubles Point-P.
     """
-    x1, y1, z1 = point_p
-    if z1 == 0:
+    xp, yp, zp = point_p
+    if zp == 0:
         result = (0, 1, 0)
         return result
-    x1_2 = (x1 ** 2) % _FP_CURVE_
-    y1_2 = (y1 ** 2) % _FP_CURVE_
-    y1_4 = (y1_2 ** 2) % _FP_CURVE_
-    s = (4 * x1 * y1_2) % _FP_CURVE_
-    m = 3 * x1_2
+    xp_2 = (xp ** 2) % _FP_CURVE_
+    yp_2 = (yp ** 2) % _FP_CURVE_
+    yp_4 = (yp_2 ** 2) % _FP_CURVE_
+    s = (4 * xp * yp_2) % _FP_CURVE_
+    m = 3 * xp_2
     if _A_CURVE_:
-        m += _A_CURVE_ * pow(z1, 4, _FP_CURVE_)
+        m += _A_CURVE_ * pow(zp, 4, _FP_CURVE_)
     m = m % _FP_CURVE_
-    x2 = (m ** 2 - 2 * s) % _FP_CURVE_
-    y2 = (m * (s - x2) - 8 * y1_4) % _FP_CURVE_
-    z2 = (2 * y1 * z1) % _FP_CURVE_
-    result = (x2, y2, z2)
+    xr = (m ** 2 - 2 * s) % _FP_CURVE_
+    yr = (m * (s - xr) - 8 * yp_4) % _FP_CURVE_
+    zr = (2 * yp * zp) % _FP_CURVE_
+    result = (xr, yr, zr)
     return result
 
 
@@ -222,31 +222,31 @@ def jacobian_point_addition_mixed(
 
     It adds Point-P with Point-Q.
     """
-    x1, y1, z1 = point_p
-    x2, y2, z2 = point_q
-    assert z2 == 1
-    if z1 == 0:
+    xp, yp, zp = point_p
+    xq, yq, zq = point_q
+    assert zq == 1
+    if zp == 0:
         result = point_q
         return result
-    z1_2 = (z1 ** 2) % _FP_CURVE_
-    z1_3 = (z1_2 * z1) % _FP_CURVE_
-    u2 = (x2 * z1_2) % _FP_CURVE_
-    s2 = (y2 * z1_3) % _FP_CURVE_
-    if x1 == u2:
-        if y1 != s2:
+    zp_2 = (zp ** 2) % _FP_CURVE_
+    zp_3 = (zp_2 * zp) % _FP_CURVE_
+    uq = (xq * zp_2) % _FP_CURVE_
+    sq = (yq * zp_3) % _FP_CURVE_
+    if xp == uq:
+        if yp != sq:
             result = (0, 1, 0)
             return result
         result = jacobian_point_doubling(point_p)
         return result
-    h = u2 - x1
-    r = s2 - y1
+    h = uq - xp
+    r = sq - yp
     h_2 = (h ** 2) % _FP_CURVE_
     h_3 = (h_2 * h) % _FP_CURVE_
-    x1_h_2 = (x1 * h_2) % _FP_CURVE_
-    x3 = (r ** 2 - h_3 - 2 * x1_h_2) % _FP_CURVE_
-    y3 = (r * (x1_h_2 - x3) - y1 * h_3) % _FP_CURVE_
-    z3 = (h * z1) % _FP_CURVE_
-    result = (x3, y3, z3)
+    xp_h_2 = (xp * h_2) % _FP_CURVE_
+    xr = (r ** 2 - h_3 - 2 * xp_h_2) % _FP_CURVE_
+    yr = (r * (xp_h_2 - xr) - yp * h_3) % _FP_CURVE_
+    zr = (h * zp) % _FP_CURVE_
+    result = (xr, yr, zr)
     return result
 
 
@@ -259,43 +259,43 @@ def jacobian_point_addition(
 
     It adds Point-P with Point-Q.
     """
-    x1, y1, z1 = point_p
-    x2, y2, z2 = point_q
-    if z1 == 0:
+    xp, yp, zp = point_p
+    xq, yq, zq = point_q
+    if zp == 0:
         result = point_q
         return result
-    if z2 == 0:
+    if zq == 0:
         result = point_p
         return result
-    if z1 == 1:
+    if zp == 1:
         result = jacobian_point_addition_mixed(point_q, point_p)
         return result
-    if z2 == 1:
+    if zq == 1:
         result = jacobian_point_addition_mixed(point_p, point_q)
         return result
-    z1_2 = (z1 ** 2) % _FP_CURVE_
-    z1_3 = (z1_2 * z1) % _FP_CURVE_
-    z2_2 = (z2 ** 2) % _FP_CURVE_
-    z2_3 = (z2_2 * z2) % _FP_CURVE_
-    u1 = (x1 * z2_2) % _FP_CURVE_
-    u2 = (x2 * z1_2) % _FP_CURVE_
-    s1 = (y1 * z2_3) % _FP_CURVE_
-    s2 = (y2 * z1_3) % _FP_CURVE_
-    if u1 == u2:
-        if s1 != s2:
+    zp_2 = (zp ** 2) % _FP_CURVE_
+    zp_3 = (zp_2 * zp) % _FP_CURVE_
+    zq_2 = (zq ** 2) % _FP_CURVE_
+    zq_3 = (zq_2 * zq) % _FP_CURVE_
+    up = (xp * zq_2) % _FP_CURVE_
+    uq = (xq * zp_2) % _FP_CURVE_
+    sp = (yp * zq_3) % _FP_CURVE_
+    sq = (yq * zp_3) % _FP_CURVE_
+    if up == uq:
+        if sp != sq:
             result = (0, 1, 0)
             return result
         result = jacobian_point_doubling(point_p)
         return result
-    h = u2 - u1
-    r = s2 - s1
+    h = uq - up
+    r = sq - sp
     h_2 = (h ** 2) % _FP_CURVE_
     h_3 = (h_2 * h) % _FP_CURVE_
-    u1_h_2 = (u1 * h_2) % _FP_CURVE_
-    x3 = (r ** 2 - h_3 - 2 * u1_h_2) % _FP_CURVE_
-    y3 = (r * (u1_h_2 - x3) - s1 * h_3) % _FP_CURVE_
-    z3 = (h * z1 * z2) % _FP_CURVE_
-    result = (x3, y3, z3)
+    up_h_2 = (up * h_2) % _FP_CURVE_
+    xr = (r ** 2 - h_3 - 2 * up_h_2) % _FP_CURVE_
+    yr = (r * (up_h_2 - xr) - sp * h_3) % _FP_CURVE_
+    zr = (h * zp * zq) % _FP_CURVE_
+    result = (xr, yr, zr)
     return result
 
 
