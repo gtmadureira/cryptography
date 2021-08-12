@@ -54,7 +54,7 @@ Jacobian_Coordinate = Tuple[int, int, int]
 # Finite field (Fp):
 _FP_CURVE_ = 0xFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFEFFFFFC2F
 
-# The elliptic curve: (y^2 = x^3 + ax + b) over Fp is defined by:
+# The elliptic curve (y^2 = x^3 + ax + b) over Fp is defined by:
 _A_CURVE_ = 0x0000000000000000000000000000000000000000000000000000000000000000
 _B_CURVE_ = 0x0000000000000000000000000000000000000000000000000000000000000007
 
@@ -157,106 +157,156 @@ def has_even_y(point: Point) -> bool:
 
 
 def to_jacobian(point: Point) -> Jacobian_Coordinate:
-    """Convert from Weierstrass form to Jacobian form."""
-    o = (point[0], point[1], 1)
-    result = o
+    """
+    Convert an affine point to Jacobian coordinate.
+
+    A Jacobian coordinate is represented as (x, y, z).
+    """
+    x1, y1 = point
+    x1, y1, z1 = (x1, y1, 1)
+    result = (x1, y1, z1)
     return result
 
 
-def jacobian_doubling(point_p: Jacobian_Coordinate) -> Jacobian_Coordinate:
+def from_jacobian(point: Jacobian_Coordinate) -> Optional[Point]:
     """
-    Point doubling in elliptic curve.
+    Convert a Jacobian coordinate to affine point, or None if at
+    infinity.
+
+    An affine point is represented as (x, y).
+    """
+    x1, y1, z1 = point
+    if z1 == 0:
+        result = None
+        return result
+    inv_1 = modular_inverse(z1, _FP_CURVE_)
+    inv_2 = (inv_1 ** 2) % _FP_CURVE_
+    inv_3 = (inv_2 * inv_1) % _FP_CURVE_
+    result = ((inv_2 * x1) % _FP_CURVE_, (inv_3 * y1) % _FP_CURVE_)
+    return result
+
+
+def jacobian_point_doubling(
+        point_p: Jacobian_Coordinate) -> Jacobian_Coordinate:
+    """
+    Point doubling in elliptic curve, using Jacobian coordinate
+    (x, y, z).
 
     It doubles Point-P.
     """
-    if not point_p[1]:
-        result = (0, 0, 0)
+    x1, y1, z1 = point_p
+    if z1 == 0:
+        result = (0, 1, 0)
         return result
-    ysq = (point_p[1] ** 2) % _FP_CURVE_
-    s = (4 * point_p[0] * ysq) % _FP_CURVE_
-    m = (3 * point_p[0] ** 2 + _A_CURVE_ * point_p[2] ** 4) % _FP_CURVE_
-    nx = (m ** 2 - 2 * s) % _FP_CURVE_
-    ny = (m * (s - nx) - 8 * ysq ** 2) % _FP_CURVE_
-    nz = (2 * point_p[1] * point_p[2]) % _FP_CURVE_
-    result = (nx, ny, nz)
+    x1_2 = (x1 ** 2) % _FP_CURVE_
+    y1_2 = (y1 ** 2) % _FP_CURVE_
+    y1_4 = (y1_2 ** 2) % _FP_CURVE_
+    s = (4 * x1 * y1_2) % _FP_CURVE_
+    m = 3 * x1_2
+    if _A_CURVE_:
+        m += _A_CURVE_ * pow(z1, 4, _FP_CURVE_)
+    m = m % _FP_CURVE_
+    x2 = (m ** 2 - 2 * s) % _FP_CURVE_
+    y2 = (m * (s - x2) - 8 * y1_4) % _FP_CURVE_
+    z2 = (2 * y1 * z1) % _FP_CURVE_
+    result = (x2, y2, z2)
     return result
 
 
-def jacobian_addition(point_p: Jacobian_Coordinate,
-                      point_q: Jacobian_Coordinate) -> Jacobian_Coordinate:
+def jacobian_point_addition_mixed(
+        point_p: Jacobian_Coordinate,
+        point_q: Jacobian_Coordinate) -> Jacobian_Coordinate:
     """
-    Point addition in elliptic curve.
+    Point addition (mixed) in elliptic curve, using Jacobian coordinate
+    (x, y, z) and affine coordinate in Jacobian form (x, y, 1).
 
     It adds Point-P with Point-Q.
     """
-    if not point_p[1]:
+    x1, y1, z1 = point_p
+    x2, y2, z2 = point_q
+    assert z2 == 1
+    if z1 == 0:
         result = point_q
         return result
-    if not point_q[1]:
+    z1_2 = (z1 ** 2) % _FP_CURVE_
+    z1_3 = (z1_2 * z1) % _FP_CURVE_
+    u2 = (x2 * z1_2) % _FP_CURVE_
+    s2 = (y2 * z1_3) % _FP_CURVE_
+    if x1 == u2:
+        if y1 != s2:
+            result = (0, 1, 0)
+            return result
+        result = jacobian_point_doubling(point_p)
+        return result
+    h = u2 - x1
+    r = s2 - y1
+    h_2 = (h ** 2) % _FP_CURVE_
+    h_3 = (h_2 * h) % _FP_CURVE_
+    x1_h_2 = (x1 * h_2) % _FP_CURVE_
+    x3 = (r ** 2 - h_3 - 2 * x1_h_2) % _FP_CURVE_
+    y3 = (r * (x1_h_2 - x3) - y1 * h_3) % _FP_CURVE_
+    z3 = (h * z1) % _FP_CURVE_
+    result = (x3, y3, z3)
+    return result
+
+
+def jacobian_point_addition(
+        point_p: Jacobian_Coordinate,
+        point_q: Jacobian_Coordinate) -> Jacobian_Coordinate:
+    """
+    Point addition in elliptic curve, using Jacobian coordinate
+    (x, y, z).
+
+    It adds Point-P with Point-Q.
+    """
+    x1, y1, z1 = point_p
+    x2, y2, z2 = point_q
+    if z1 == 0:
+        result = point_q
+        return result
+    if z2 == 0:
         result = point_p
         return result
-    u1 = (point_p[0] * point_q[2] ** 2) % _FP_CURVE_
-    u2 = (point_q[0] * point_p[2] ** 2) % _FP_CURVE_
-    s1 = (point_p[1] * point_q[2] ** 3) % _FP_CURVE_
-    s2 = (point_q[1] * point_p[2] ** 3) % _FP_CURVE_
+    if z1 == 1:
+        result = jacobian_point_addition_mixed(point_q, point_p)
+        return result
+    if z2 == 1:
+        result = jacobian_point_addition_mixed(point_p, point_q)
+        return result
+    z1_2 = (z1 ** 2) % _FP_CURVE_
+    z1_3 = (z1_2 * z1) % _FP_CURVE_
+    z2_2 = (z2 ** 2) % _FP_CURVE_
+    z2_3 = (z2_2 * z2) % _FP_CURVE_
+    u1 = (x1 * z2_2) % _FP_CURVE_
+    u2 = (x2 * z1_2) % _FP_CURVE_
+    s1 = (y1 * z2_3) % _FP_CURVE_
+    s2 = (y2 * z1_3) % _FP_CURVE_
     if u1 == u2:
         if s1 != s2:
-            result = (0, 0, 1)
+            result = (0, 1, 0)
             return result
-        result = jacobian_doubling(point_p)
+        result = jacobian_point_doubling(point_p)
         return result
     h = u2 - u1
     r = s2 - s1
-    h2 = (h * h) % _FP_CURVE_
-    h3 = (h * h2) % _FP_CURVE_
-    u1h2 = (u1 * h2) % _FP_CURVE_
-    nx = (r ** 2 - h3 - 2 * u1h2) % _FP_CURVE_
-    ny = (r * (u1h2 - nx) - s1 * h3) % _FP_CURVE_
-    nz = (h * point_p[2] * point_q[2]) % _FP_CURVE_
-    result = (nx, ny, nz)
+    h_2 = (h ** 2) % _FP_CURVE_
+    h_3 = (h_2 * h) % _FP_CURVE_
+    u1_h_2 = (u1 * h_2) % _FP_CURVE_
+    x3 = (r ** 2 - h_3 - 2 * u1_h_2) % _FP_CURVE_
+    y3 = (r * (u1_h_2 - x3) - s1 * h_3) % _FP_CURVE_
+    z3 = (h * z1 * z2) % _FP_CURVE_
+    result = (x3, y3, z3)
     return result
 
 
-def from_jacobian(point: Jacobian_Coordinate) -> Point:
-    """Convert from Jacobian form to Weierstrass form."""
-    z = modular_inverse(point[2], _FP_CURVE_)
-    result = ((point[0] * z ** 2) % _FP_CURVE_,
-              (point[1] * z ** 3) % _FP_CURVE_)
-    return result
-
-
-def jacobian_multiplication(point: Jacobian_Coordinate,
-                            scalar: int) -> Jacobian_Coordinate:
-    """
-    Point multiplication in elliptic curve.
-
-    It doubles Point-P and adds Point-P with Point-Q.
-    """
-    result = None
-    if point[1] == 0 or scalar == 0:
-        result = (0, 0, 1)
-        return result
-    if scalar == 1:
-        result = point
-        return result
-    if (scalar % 2) == 0:
-        result = jacobian_doubling(jacobian_multiplication(point, scalar // 2))
-        return result
-    if (scalar % 2) == 1:
-        result = jacobian_addition(jacobian_doubling(
-            jacobian_multiplication(point, scalar // 2)), point)
-        return result
-    return result  # type: ignore
-
-
-def ec_point_multiplication(
+def jacobian_point_multiplication(
         scalar: int,
         point: Optional[Point] = _GENERATOR_POINT_CURVE_) -> Point:
     """
-    It prepares the generator point, from Weierstrass format converting
-    to Jacobian coordinate before starting the multiplication, and at
-    the end converts it again but from Jacobian coordinate to
-    Weierstrass format.
+    Point multiplication in elliptic curve, using Jacobian coordinate
+    (x, y, z).
+
+    It doubles Point-P and adds Point-P with Point-Q.
     """
     assert is_on_curve(point)
     if not 0 < scalar < _N_CURVE_:
@@ -267,9 +317,17 @@ def ec_point_multiplication(
             or points to infinity on the elliptic curve!
             """)
     result = None
-    result = from_jacobian(jacobian_multiplication(to_jacobian(point), scalar))
+    scalarbin = bin(scalar)[2:]
+    jacobian = to_jacobian(point)
+    current = jacobian
+    for i in range(1, len(scalarbin)):
+        current = jacobian_point_doubling(current)
+        if scalarbin[i] == "1":
+            current = jacobian_point_addition(jacobian, current)
+    affine = from_jacobian(current)
+    result = affine
     assert is_on_curve(result)
-    return result
+    return result  # type: ignore
 
 
 if __name__ == "__main__":
@@ -294,7 +352,7 @@ if __name__ == "__main__":
     # Elliptic curve point multiplication test.
     private_key = 1
     while True:
-        public_key = ec_point_multiplication(private_key)
+        public_key = jacobian_point_multiplication(private_key)
         if has_even_y(public_key):
             prefix = "02"
         else:

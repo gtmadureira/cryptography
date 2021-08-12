@@ -53,7 +53,7 @@ Point = Tuple[int, int]
 # Finite field (Fp):
 _FP_CURVE_ = 0xFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFEFFFFFC2F
 
-# The elliptic curve: (y^2 = x^3 + ax + b) over Fp is defined by:
+# The elliptic curve (y^2 = x^3 + ax + b) over Fp is defined by:
 _A_CURVE_ = 0x0000000000000000000000000000000000000000000000000000000000000000
 _B_CURVE_ = 0x0000000000000000000000000000000000000000000000000000000000000007
 
@@ -226,8 +226,8 @@ def ec_point_multiplication(
             None (Generator/Base Point) has been provided
             or points to infinity on the elliptic curve!
             """)
-    scalarbin = bin(scalar)[2:]
     result = None
+    scalarbin = bin(scalar)[2:]
     current = point
     for i in range(1, len(scalarbin)):
         current = ec_point_doubling(current)  # type: ignore

@@ -13,7 +13,7 @@ if public_key_w[1] % 2 == 1:
 else:
     prefix_w = "02"
 
-public_key_j = secp256k1_jacobian.ec_point_multiplication(
+public_key_j = secp256k1_jacobian.jacobian_point_multiplication(
     int("0x" + private_key, 16))
 if public_key_j[1] % 2 == 1:
     prefix_j = "03"
