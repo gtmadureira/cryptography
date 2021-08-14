@@ -3,8 +3,8 @@ from secp256k1_weierstrass import _GENERATOR_POINT_CURVE_, \
 from secp256k1_jacobian import jacobian_point_multiplication
 
 
-private_key = "634737958D20C72F558B35AC9ED9AC9F" \
-              "530990EF4E10E9BB5456A650EB439E9C"
+private_key = \
+    "634737958D20C72F558B35AC9ED9AC9F530990EF4E10E9BB5456A650EB439E9C"
 
 
 public_key_w = ec_point_multiplication(

@@ -85,15 +85,15 @@ def modular_inverse(k: int, p: int) -> int:
     if k < 0:
         result = p - modular_inverse(-k, p)
         return result
-    r, old_r = (p, k)
-    s, old_s = (0, 1)
-    t, old_t = (1, 0)
-    while r != 0:
-        quotient = old_r // r
-        old_r, r = (r, old_r - quotient * r)
-        old_s, s = (s, old_s - quotient * s)
-        old_t, t = (t, old_t - quotient * t)
-    gcd, x, y = (old_r, old_s, old_t)
+    old_r, r = (k, p)
+    old_s, s = (1, 0)
+    old_t, t = (0, 1)
+    while old_r != 0:
+        quotient = r // old_r
+        r, old_r = (old_r, r - quotient * old_r)
+        s, old_s = (old_s, s - quotient * old_s)
+        t, old_t = (old_t, t - quotient * old_t)
+    gcd, x, y = (r, s, t)
     if k == 1:
         assert gcd == 1
         assert (k * x) % p == 1

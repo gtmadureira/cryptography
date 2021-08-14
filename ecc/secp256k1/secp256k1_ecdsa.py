@@ -45,40 +45,45 @@ from secp256k1_weierstrass import _GENERATOR_POINT_CURVE_, _N_CURVE_, \
 
 # Type Hints.
 Point = Tuple[int, int]
+Signature = Tuple[int, int]
 
 
-def ecdsa_signature(private_key: int, data_hash: bytes) -> tuple:
+G = _GENERATOR_POINT_CURVE_
+N = _N_CURVE_
+
+
+def ecdsa_signature(private_key: int, data_hash: bytes) -> Signature:
     """This creates the message ECDSA-Signature."""
     message_hash = int.from_bytes(data_hash, byteorder="big")
-    random_number = randrange(1, _N_CURVE_)
+    random_number = randrange(1, N)
     dA = private_key
     z = message_hash
     k = random_number
-    xp, _ = ec_point_multiplication(k, _GENERATOR_POINT_CURVE_)
-    r = xp % _N_CURVE_
-    s = (modular_inverse(k, _N_CURVE_) * (z + r * dA)) % _N_CURVE_
+    xp, _ = ec_point_multiplication(k, G)
+    r = xp % N
+    s = (modular_inverse(k, N) * (z + r * dA)) % N
     result = (r, s)
     return result
 
 
 def ecdsa_verification(public_key: Point,
-                       data_hash: bytes, signature: tuple) -> bool:
+                       data_hash: bytes, signature: Signature) -> bool:
     """This verifies the message ECDSA-Signature."""
     result = False
     message_hash = int.from_bytes(data_hash, byteorder="big")
     QA = public_key
     z = message_hash
     r, s = signature
-    if not 0 < r < _N_CURVE_ or not 0 < s < _N_CURVE_:
+    if not 0 < r < N or not 0 < s < N:
         result = False
         return result
-    w = modular_inverse(s, _N_CURVE_)
-    up = (z * w) % _N_CURVE_
-    uq = (r * w) % _N_CURVE_
-    xp = ec_point_multiplication(up, _GENERATOR_POINT_CURVE_)
+    w = modular_inverse(s, N)
+    up = (z * w) % N
+    uq = (r * w) % N
+    xp = ec_point_multiplication(up, G)
     xq = ec_point_multiplication(uq, QA)
     xr, _ = ec_point_addition(xp, xq)  # type: ignore
-    if r % _N_CURVE_ == xr % _N_CURVE_:
+    if r % N == xr % N:
         result = True
     return result
 
@@ -112,6 +117,15 @@ if __name__ == "__main__":
     else:
         signature_result = "\033[95m[X] Bad signature\033[0m"
 
+    data = (hex(private_key)[2:].zfill(64).upper(),
+            hex(x(public_key))[2:].zfill(64).upper(),
+            hex(y(public_key))[2:].zfill(64).upper(),
+            message.decode(),
+            message_hash.hex().upper(),
+            hex(signature[0])[2:].zfill(64).upper(),
+            hex(signature[1])[2:].zfill(64).upper(),
+            signature_result)
+
     print(f"""\033[92m
         SECP256K1 ECDSA-Signature  Copyright (C) 2021  Gustavo Madureira
         This program comes with ABSOLUTELY NO WARRANTY.
@@ -119,17 +133,17 @@ if __name__ == "__main__":
         under certain conditions.\033[0m
 
 
-           Private Key: {hex(private_key)[2:].zfill(64).upper()}
+           Private Key: {data[0]}
 
-            Public Key: X = {hex(x(public_key))[2:].zfill(64).upper()}
-                        Y = {hex(y(public_key))[2:].zfill(64).upper()}
+            Public Key: X = {data[1]}
+                        Y = {data[2]}
 
-               Message: {message.decode()}
+               Message: {data[3]}
 
-          Message Hash: {message_hash.hex().upper()}
+          Message Hash: {data[4]}
 
-             Signature: R = {hex(signature[0])[2:].zfill(64).upper()}
-                        S = {hex(signature[1])[2:].zfill(64).upper()}
+             Signature: R = {data[5]}
+                        S = {data[6]}
 
-Signature Verification: {signature_result}
+Signature Verification: {data[7]}
 """)
