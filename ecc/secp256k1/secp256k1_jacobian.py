@@ -94,11 +94,17 @@ def modular_inverse(k: int, p: int) -> int:
         old_s, s = (s, old_s - quotient * s)
         old_t, t = (t, old_t - quotient * t)
     gcd, x, y = (old_r, old_s, old_t)
-    assert gcd == 1
-    assert (k * x) % p == 1
     if k == 1:
+        assert gcd == 1
+        assert (k * x) % p == 1
         assert (p * y) % k == 0
-    if k != 1:
+    if k == p:
+        assert gcd == p
+        assert (k * x) % p == 0
+        assert (p * y) % k == 0
+    if k != 1 and k != p:
+        assert gcd == 1
+        assert (k * x) % p == 1
         assert (p * y) % k == 1
     result = x % p
     return result
@@ -178,6 +184,9 @@ def from_jacobian(point: Jacobian_Coordinate) -> Optional[Point]:
     xp, yp, zp = point
     if zp == 0:
         result = None
+        return result
+    if zp == 1:
+        result = (xp, yp)
         return result
     inv_1 = modular_inverse(zp, _FP_CURVE_)
     inv_2 = (inv_1 ** 2) % _FP_CURVE_
@@ -299,9 +308,8 @@ def jacobian_point_addition(
     return result
 
 
-def jacobian_point_multiplication(
-        scalar: int,
-        point: Optional[Point] = _GENERATOR_POINT_CURVE_) -> Point:
+def jacobian_point_multiplication(scalar: int,
+                                  point: Optional[Point]) -> Point:
     """
     Point multiplication in elliptic curve, using Jacobian coordinate
     (x, y, z).
@@ -352,7 +360,8 @@ if __name__ == "__main__":
     # Elliptic curve point multiplication test.
     private_key = 1
     while True:
-        public_key = jacobian_point_multiplication(private_key)
+        public_key = jacobian_point_multiplication(
+            private_key, _GENERATOR_POINT_CURVE_)
         if has_even_y(public_key):
             prefix = "02"
         else:

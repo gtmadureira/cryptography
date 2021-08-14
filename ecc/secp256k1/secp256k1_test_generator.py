@@ -1,20 +1,21 @@
-import secp256k1_jacobian
-import secp256k1_weierstrass
+from secp256k1_weierstrass import _GENERATOR_POINT_CURVE_, \
+    ec_point_multiplication
+from secp256k1_jacobian import jacobian_point_multiplication
 
 
 private_key = "634737958D20C72F558B35AC9ED9AC9F" \
               "530990EF4E10E9BB5456A650EB439E9C"
 
 
-public_key_w = secp256k1_weierstrass.ec_point_multiplication(
-    int("0x" + private_key, 16))
+public_key_w = ec_point_multiplication(
+    int("0x" + private_key, 16), _GENERATOR_POINT_CURVE_)
 if public_key_w[1] % 2 == 1:
     prefix_w = "03"
 else:
     prefix_w = "02"
 
-public_key_j = secp256k1_jacobian.jacobian_point_multiplication(
-    int("0x" + private_key, 16))
+public_key_j = jacobian_point_multiplication(
+    int("0x" + private_key, 16), _GENERATOR_POINT_CURVE_)
 if public_key_j[1] % 2 == 1:
     prefix_j = "03"
 else:

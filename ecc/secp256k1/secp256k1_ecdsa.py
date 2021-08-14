@@ -39,8 +39,8 @@ curve, using Weierstrass form.
 
 from typing import Tuple
 from random import randrange
-from secp256k1_weierstrass import modular_inverse, _N_CURVE_
-from secp256k1_weierstrass import ec_point_multiplication, ec_point_addition
+from secp256k1_weierstrass import _GENERATOR_POINT_CURVE_, _N_CURVE_, \
+    modular_inverse, ec_point_addition, ec_point_multiplication
 
 
 # Type Hints.
@@ -49,12 +49,14 @@ Point = Tuple[int, int]
 
 def ecdsa_signature(private_key: int, data_hash: bytes) -> tuple:
     """This creates the message ECDSA-Signature."""
-    random_number = randrange(1, _N_CURVE_)
-    xp, _ = ec_point_multiplication(random_number)
-    r = xp % _N_CURVE_
     message_hash = int.from_bytes(data_hash, byteorder="big")
-    s = ((message_hash + r * private_key) *
-         (modular_inverse(random_number, _N_CURVE_))) % _N_CURVE_
+    random_number = randrange(1, _N_CURVE_)
+    dA = private_key
+    z = message_hash
+    k = random_number
+    xp, _ = ec_point_multiplication(k, _GENERATOR_POINT_CURVE_)
+    r = xp % _N_CURVE_
+    s = (modular_inverse(k, _N_CURVE_) * (z + r * dA)) % _N_CURVE_
     result = (r, s)
     return result
 
@@ -64,12 +66,19 @@ def ecdsa_verification(public_key: Point,
     """This verifies the message ECDSA-Signature."""
     result = False
     message_hash = int.from_bytes(data_hash, byteorder="big")
+    QA = public_key
+    z = message_hash
     r, s = signature
+    if not 0 < r < _N_CURVE_ or not 0 < s < _N_CURVE_:
+        result = False
+        return result
     w = modular_inverse(s, _N_CURVE_)
-    up = ec_point_multiplication((message_hash * w) % _N_CURVE_)
-    uq = ec_point_multiplication((r * w) % _N_CURVE_, public_key)
-    x, _ = ec_point_addition(up, uq)  # type: ignore
-    if r == x:
+    up = (z * w) % _N_CURVE_
+    uq = (r * w) % _N_CURVE_
+    xp = ec_point_multiplication(up, _GENERATOR_POINT_CURVE_)
+    xq = ec_point_multiplication(uq, QA)
+    xr, _ = ec_point_addition(xp, xq)  # type: ignore
+    if r % _N_CURVE_ == xr % _N_CURVE_:
         result = True
     return result
 
@@ -87,7 +96,9 @@ if __name__ == "__main__":
     # ECDSA-Signature test.
     private_key = \
         0xE05AF5BC208C749190567B921A0C28FE112CD8B54E9FF82F77FA58998B694D4C
-    public_key = ec_point_multiplication(private_key)
+    public_key = \
+        (0x9E0833545033AFE57A6C605D1D91B808CF495DD525217754AF9ED826E13A8AD6,
+         0x3F2A1F3371300A6A0CFFE391361D9F838C67EB55B5DC6B701B0CA03668A7B8CF)
 
     message = b"My name is Gustavo Madureira. This is a ECDSA-Signature test."
 

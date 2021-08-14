@@ -84,18 +84,27 @@ def modular_inverse(k: int, p: int) -> int:
     if k < 0:
         result = p - modular_inverse(-k, p)
         return result
-    r, old_r = (k, p)
-    s, old_s = (1, 0)
-    t, old_t = (0, 1)
+    r, old_r = (p, k)
+    s, old_s = (0, 1)
+    t, old_t = (1, 0)
     while r != 0:
         quotient = old_r // r
         old_r, r = (r, old_r - quotient * r)
         old_s, s = (s, old_s - quotient * s)
         old_t, t = (t, old_t - quotient * t)
     gcd, x, y = (old_r, old_s, old_t)
-    assert gcd == 1
-    assert (x * k) % p == 1
-    assert (y * p) % k == 1
+    if k == 1:
+        assert gcd == 1
+        assert (k * x) % p == 1
+        assert (p * y) % k == 0
+    if k == p:
+        assert gcd == p
+        assert (k * x) % p == 0
+        assert (p * y) % k == 0
+    if k != 1 and k != p:
+        assert gcd == 1
+        assert (k * x) % p == 1
+        assert (p * y) % k == 1
     result = x % p
     return result
 
@@ -210,9 +219,7 @@ def ec_point_addition(point_p: Optional[Point],
     return result
 
 
-def ec_point_multiplication(
-        scalar: int,
-        point: Optional[Point] = _GENERATOR_POINT_CURVE_) -> Point:
+def ec_point_multiplication(scalar: int, point: Optional[Point]) -> Point:
     """
     Point multiplication in elliptic curve.
 
@@ -260,7 +267,8 @@ if __name__ == "__main__":
     # Elliptic curve point multiplication test.
     private_key = 1
     while True:
-        public_key = ec_point_multiplication(private_key)
+        public_key = ec_point_multiplication(
+            private_key, _GENERATOR_POINT_CURVE_)
         if has_even_y(public_key):
             prefix = "02"
         else:
