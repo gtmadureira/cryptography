@@ -52,12 +52,12 @@ G = _GENERATOR_POINT_CURVE_
 N = _N_CURVE_
 
 
-def ecdsa_signature(private_key: int, data_hash: bytes) -> Signature:
+def ecdsa_signature(private_key: int, message_hash: bytes) -> Signature:
     """This creates the message ECDSA-Signature."""
-    message_hash = int.from_bytes(data_hash, byteorder="big")
+    data_hash = int.from_bytes(message_hash, byteorder="big")
     random_number = randrange(1, N)
     dA = private_key
-    z = message_hash
+    z = data_hash
     k = random_number
     xp, _ = ec_point_multiplication(k, G)
     r = xp % N
@@ -67,12 +67,12 @@ def ecdsa_signature(private_key: int, data_hash: bytes) -> Signature:
 
 
 def ecdsa_verification(public_key: Point,
-                       data_hash: bytes, signature: Signature) -> bool:
+                       message_hash: bytes, signature: Signature) -> bool:
     """This verifies the message ECDSA-Signature."""
     result = False
-    message_hash = int.from_bytes(data_hash, byteorder="big")
+    data_hash = int.from_bytes(message_hash, byteorder="big")
     QA = public_key
-    z = message_hash
+    z = data_hash
     r, s = signature
     if not 0 < r < N or not 0 < s < N:
         result = False

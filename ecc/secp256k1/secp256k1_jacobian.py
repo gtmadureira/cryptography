@@ -340,9 +340,11 @@ def jacobian_point_multiplication(scalar: int,
 
 if __name__ == "__main__":
 
-    from time import sleep
     from platform import system
+    from time import sleep, perf_counter
     from subprocess import check_call as run_command
+
+    start = perf_counter()
 
     # Tests the operating system type and sets the screen clear command.
     if system() == "Windows":
@@ -359,7 +361,7 @@ if __name__ == "__main__":
 
     # Elliptic curve point multiplication test.
     private_key = 1
-    while True:
+    while private_key < 20001:
         public_key = jacobian_point_multiplication(
             private_key, _GENERATOR_POINT_CURVE_)
         if has_even_y(public_key):
@@ -372,7 +374,7 @@ if __name__ == "__main__":
                 hex(y(public_key))[2:].zfill(64).upper(),
                 prefix)
         private_key += 1
-        sleep(0.65)
+        sleep(0.0)
         clear()
         print(f"""\033[92m
         SECP256K1 at Jacobian Form  Copyright (C) 2021  Gustavo Madureira
@@ -385,4 +387,8 @@ if __name__ == "__main__":
              Private Key: {data[1]}
  Uncompressed Public Key: 04{data[2]}{data[3]}
    Compressed Public Key: {data[4]}{data[2]}
+\033[0m""")
+    elapsed = perf_counter() - start
+    print(f"""\033[92m
+        Finished in {elapsed:.02f} seconds.
 \033[0m""")
