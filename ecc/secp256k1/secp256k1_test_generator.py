@@ -1,27 +1,29 @@
 from secp256k1_weierstrass import _GENERATOR_POINT_CURVE_, \
-    ec_point_multiplication
+    int_from_hex, has_even_y, ec_point_multiplication
 from secp256k1_jacobian import jacobian_point_multiplication
 
 
-private_key = \
-    "634737958D20C72F558B35AC9ED9AC9F530990EF4E10E9BB5456A650EB439E9C"
+G = _GENERATOR_POINT_CURVE_
 
 
-public_key_w = ec_point_multiplication(
-    int("0x" + private_key, 16), _GENERATOR_POINT_CURVE_)
-if public_key_w[1] % 2 == 1:
-    prefix_w = "03"
-else:
+private_key = int_from_hex(
+    "E05AF5BC 208C7491 90567B92 1A0C28FE"
+    "112CD8B5 4E9FF82F 77FA5899 8B694D4C")
+
+
+public_key_w = ec_point_multiplication(private_key, G)
+if has_even_y(public_key_w):
     prefix_w = "02"
-
-public_key_j = jacobian_point_multiplication(
-    int("0x" + private_key, 16), _GENERATOR_POINT_CURVE_)
-if public_key_j[1] % 2 == 1:
-    prefix_j = "03"
 else:
-    prefix_j = "02"
+    prefix_w = "03"
 
-data = (private_key,
+public_key_j = jacobian_point_multiplication(private_key, G)
+if has_even_y(public_key_j):
+    prefix_j = "02"
+else:
+    prefix_j = "03"
+
+data = (hex(private_key)[2:].zfill(64).upper(),
         hex(public_key_w[0])[2:].zfill(64).upper(),
         hex(public_key_w[1])[2:].zfill(64).upper(),
         prefix_w,

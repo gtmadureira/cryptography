@@ -90,20 +90,20 @@ def ecdsa_verification(public_key: Point,
 
 if __name__ == "__main__":
 
+    # ECDSA-Signature test.
     from hashlib import sha256
-    from secp256k1_weierstrass import x, y
+    from secp256k1_weierstrass import int_from_hex, x, y
 
     def hasher_double_sha256(data: bytes) -> bytes:
         """Get double hash through SHA-256."""
         result = sha256(sha256(data).digest()).digest()
         return result
 
-    # ECDSA-Signature test.
-    private_key = \
-        0xE05AF5BC208C749190567B921A0C28FE112CD8B54E9FF82F77FA58998B694D4C
-    public_key = \
-        (0x9E0833545033AFE57A6C605D1D91B808CF495DD525217754AF9ED826E13A8AD6,
-         0x3F2A1F3371300A6A0CFFE391361D9F838C67EB55B5DC6B701B0CA03668A7B8CF)
+    private_key = int_from_hex(
+        "E05AF5BC 208C7491 90567B92 1A0C28FE"
+        "112CD8B5 4E9FF82F 77FA5899 8B694D4C")
+
+    public_key = ec_point_multiplication(private_key, G)
 
     message = b"My name is Gustavo Madureira. This is a ECDSA-Signature test."
 

@@ -45,26 +45,49 @@ from typing import Optional, Tuple
 Point = Tuple[int, int]
 
 
+def int_from_hex(hexadecimal_string: str) -> int:
+    """Converts the hexadecimal string to integer."""
+    result = int(
+        "0x" + "".join(hexadecimal_string.replace(":", "").split()), 16)
+    return result
+
+
 """
         Mathematical domain parameters of the elliptic curve secp256k1.
         Source: https://www.secg.org/sec2-v2.pdf
 """
 
+
 # Finite field (Fp):
-_FP_CURVE_ = 0xFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFEFFFFFC2F
+_FP_CURVE_ = int_from_hex(
+    "FFFFFFFF FFFFFFFF FFFFFFFF FFFFFFFF FFFFFFFF FFFFFFFF FFFFFFFE FFFFFC2F")
+
 
 # The elliptic curve (y^2 = x^3 + ax + b) over Fp is defined by:
-_A_CURVE_ = 0x0000000000000000000000000000000000000000000000000000000000000000
-_B_CURVE_ = 0x0000000000000000000000000000000000000000000000000000000000000007
+_A_CURVE_ = int_from_hex(
+    "00000000 00000000 00000000 00000000 00000000 00000000 00000000 00000000")
 
-# The generator point in uncompressed form is:
-_GX_CURVE_ = 0x79BE667EF9DCBBAC55A06295CE870B07029BFCDB2DCE28D959F2815B16F81798
-_GY_CURVE_ = 0x483ADA7726A3C4655DA4FBFC0E1108A8FD17B448A68554199C47D08FFB10D4B8
+_B_CURVE_ = int_from_hex(
+    "00000000 00000000 00000000 00000000 00000000 00000000 00000000 00000007")
+
+
+# The generator point in Compressed form is:
+_GX_CURVE_ = int_from_hex(
+    "79BE667E F9DCBBAC 55A06295 CE870B07 029BFCDB 2DCE28D9 59F2815B 16F81798")
+
+_GY_CURVE_ = int_from_hex(
+    "483ADA77 26A3C465 5DA4FBFC 0E1108A8 FD17B448 A6855419 9C47D08F FB10D4B8")
+
 _GENERATOR_POINT_CURVE_: Point = (_GX_CURVE_, _GY_CURVE_)
 
+
 # Order of generator point and the cofactor are:
-_N_CURVE_ = 0xFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFEBAAEDCE6AF48A03BBFD25E8CD0364141
-_H_CURVE_ = 0x0000000000000000000000000000000000000000000000000000000000000001
+_N_CURVE_ = int_from_hex(
+    "FFFFFFFF FFFFFFFF FFFFFFFF FFFFFFFE BAAEDCE6 AF48A03B BFD25E8C D0364141")
+
+_H_CURVE_ = int_from_hex(
+    "00000000 00000000 00000000 00000000 00000000 00000000 00000000 00000001")
+
 
 # Definition for a point that points to infinity in elliptic curve:
 _POINT_INFINITY_CURVE_ = None
@@ -247,6 +270,7 @@ def ec_point_multiplication(scalar: int, point: Optional[Point]) -> Point:
 
 if __name__ == "__main__":
 
+    # Elliptic curve point multiplication test.
     from platform import system
     from time import sleep, perf_counter
     from subprocess import check_call as run_command
@@ -266,7 +290,6 @@ if __name__ == "__main__":
             """Screen clear command for macOS/Linux operating system."""
             run_command("clear")
 
-    # Elliptic curve point multiplication test.
     private_key = 1
     while private_key < 20001:
         public_key = ec_point_multiplication(
