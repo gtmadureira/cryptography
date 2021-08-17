@@ -52,13 +52,11 @@ def int_from_hex(hexadecimal_string: str) -> int:
     return result
 
 
-"""
-        Mathematical domain parameters of the elliptic curve secp256k1.
-        Source: https://www.secg.org/sec2-v2.pdf
-"""
+#       Mathematical domain parameters of the elliptic curve secp256k1.
+#       Source: https://www.secg.org/sec2-v2.pdf
 
 
-# Finite field (Fp):
+# The finite field (Fp) is defined by:
 _FP_CURVE_ = int_from_hex(
     "FFFFFFFF FFFFFFFF FFFFFFFF FFFFFFFF FFFFFFFF FFFFFFFF FFFFFFFE FFFFFC2F")
 
@@ -71,7 +69,7 @@ _B_CURVE_ = int_from_hex(
     "00000000 00000000 00000000 00000000 00000000 00000000 00000000 00000007")
 
 
-# The generator point in Compressed form is:
+# The generator point is defined by:
 _GX_CURVE_ = int_from_hex(
     "79BE667E F9DCBBAC 55A06295 CE870B07 029BFCDB 2DCE28D9 59F2815B 16F81798")
 
@@ -81,7 +79,7 @@ _GY_CURVE_ = int_from_hex(
 _GENERATOR_POINT_CURVE_: Point = (_GX_CURVE_, _GY_CURVE_)
 
 
-# Order of generator point and the cofactor are:
+# The order of generator point and the cofactor are defined by:
 _N_CURVE_ = int_from_hex(
     "FFFFFFFF FFFFFFFF FFFFFFFF FFFFFFFE BAAEDCE6 AF48A03B BFD25E8C D0364141")
 
@@ -89,7 +87,7 @@ _H_CURVE_ = int_from_hex(
     "00000000 00000000 00000000 00000000 00000000 00000000 00000000 00000001")
 
 
-# Definition for a point that points to infinity in elliptic curve:
+# The point that points to infinity in elliptic curve is defined by:
 _POINT_INFINITY_CURVE_ = None
 
 
@@ -244,7 +242,7 @@ def ec_point_addition(point_p: Optional[Point],
 
 def ec_point_multiplication(scalar: int, point: Optional[Point]) -> Point:
     """
-    Point multiplication in elliptic curve.
+    Scalar point multiplication in elliptic curve.
 
     It doubles Point-P and adds Point-P with Point-Q.
     """
@@ -291,7 +289,7 @@ if __name__ == "__main__":
             run_command("clear")
 
     private_key = 1
-    while private_key < 20001:
+    while private_key < 10001:
         public_key = ec_point_multiplication(
             private_key, _GENERATOR_POINT_CURVE_)
         if has_even_y(public_key):
