@@ -96,7 +96,7 @@ def modular_inverse(k: int, p: int) -> int:
     Extended Euclidean algorithm/division in elliptic curve.
 
     Returns the multiplicative inverse of k modulo p. Where the only
-    integer x is defined such that (x * k) % p == 1.
+    integer x is defined such that (k * x) % p == 1.
 
     k must be non-zero and p must be a prime.
     """
