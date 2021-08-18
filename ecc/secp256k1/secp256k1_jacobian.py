@@ -22,7 +22,7 @@ along with this program. If not, see https://www.gnu.org/licenses/ .
 
 Elliptic Curve Cryptography (ECC)
 
-Module to generate Public Key from elliptic curve secp256k1,
+Module to generate Public Key from elliptic curve SECP256K1,
 using Jacobian Form.
 
 (Curve used in Bitcoin cryptocurrency)
@@ -38,7 +38,7 @@ using Jacobian Form.
 """
 
 
-from typing import Optional, Tuple
+from typing import Tuple
 
 
 # Type Hints.
@@ -53,7 +53,7 @@ def int_from_hex(hexadecimal_string: str) -> int:
     return result
 
 
-#       Mathematical domain parameters of the elliptic curve secp256k1.
+#       Mathematical domain parameters of the elliptic curve SECP256K1.
 #       Source: https://www.secg.org/sec2-v2.pdf
 
 
@@ -89,7 +89,7 @@ _H_CURVE_ = int_from_hex(
 
 
 # The point that points to infinity in elliptic curve is defined by:
-_POINT_INFINITY_CURVE_ = None
+_POINT_INFINITY_CURVE_ = (0, 0)
 
 
 # The point that points to infinity in elliptic curve over Jacobian
@@ -136,7 +136,7 @@ def modular_inverse(k: int, p: int) -> int:
     return result
 
 
-def is_infinite(point: Optional[Point]) -> bool:
+def is_infinite(point: Point) -> bool:
     """
     Returns whether or not it is the point at infinity in elliptic
     curve.
@@ -145,12 +145,12 @@ def is_infinite(point: Optional[Point]) -> bool:
     return result
 
 
-def is_on_curve(point: Optional[Point]) -> bool:
+def is_on_curve(point: Point) -> bool:
     """Returns True if the given point lies on the elliptic curve."""
     if is_infinite(point):
         result = True
         return result
-    xp, yp = point  # type: ignore
+    xp, yp = point
     result = (yp ** 2 - xp ** 3 - _A_CURVE_ * xp - _B_CURVE_) % _FP_CURVE_ == 0
     return result
 
@@ -162,7 +162,8 @@ def x(point: Point) -> int:
     """
     assert not is_infinite(point)
     assert is_on_curve(point)
-    result = point[0]
+    xp, _ = point
+    result = xp
     return result
 
 
@@ -173,18 +174,20 @@ def y(point: Point) -> int:
     """
     assert not is_infinite(point)
     assert is_on_curve(point)
-    result = point[1]
+    _, yp = point
+    result = yp
     return result
 
 
 def has_even_y(point: Point) -> bool:
     """
     Where the point is not is_infinite(point),
-    it returns y(point) mod 2 = 0.
+    it returns yp mod 2 = 0.
     """
     assert not is_infinite(point)
     assert is_on_curve(point)
-    result = y(point) % 2 == 0
+    _, yp = point
+    result = yp % 2 == 0
     return result
 
 
@@ -219,11 +222,12 @@ def is_affine_jacobian(point: Jacobian_Coordinate) -> bool:
     coordinate (x, y, 1).
     """
     assert not is_infinite_jacobian(point)
-    result = point[2] == 1
+    _, _, zp = point
+    result = zp == 1
     return result
 
 
-def to_jacobian(point: Optional[Point]) -> Jacobian_Coordinate:
+def to_jacobian(point: Point) -> Jacobian_Coordinate:
     """
     Convert an affine point to Jacobian coordinate, or (0, 1, 0) if at
     infinity.
@@ -234,15 +238,15 @@ def to_jacobian(point: Optional[Point]) -> Jacobian_Coordinate:
     if is_infinite(point):
         result = _POINT_INFINITY_JACOBIAN_
         return result
-    xp, yp = point  # type: ignore
+    xp, yp = point
     xp, yp, zp = (xp, yp, 1)
     result = (xp, yp, zp)
     return result
 
 
-def from_jacobian(point: Jacobian_Coordinate) -> Optional[Point]:
+def from_jacobian(point: Jacobian_Coordinate) -> Point:
     """
-    Convert a Jacobian coordinate to affine point, or None if at
+    Convert a Jacobian coordinate to affine point, or (0, 0) if at
     infinity.
 
     An affine point is represented as (x, y).
@@ -385,8 +389,7 @@ def jacobian_point_addition(
     return result
 
 
-def jacobian_point_multiplication(scalar: int,
-                                  point: Optional[Point]) -> Point:
+def jacobian_point_multiplication(scalar: int, point: Point) -> Point:
     """
     Scalar point multiplication in elliptic curve, using Jacobian
     coordinate (x, y, z).
@@ -394,25 +397,23 @@ def jacobian_point_multiplication(scalar: int,
     It doubles Point-P and adds Point-P with Point-Q.
     """
     assert is_on_curve(point)
-    if not 0 < scalar < _N_CURVE_:
-        raise Exception("Invalid Scalar/Private Key!")
-    if point is None or 0 in {point[0], point[1]}:
-        raise Exception("""
-            None (Generator/Base Point) has been provided
-            or points to infinity on the elliptic curve!
-            """)
-    result = None
-    scalarbin = bin(scalar)[2:]
+    if scalar == 0 or is_infinite(point) or 0 in point:
+        result = _POINT_INFINITY_CURVE_
+        return result
+    if scalar < 0 or scalar >= _N_CURVE_:
+        result = jacobian_point_multiplication(scalar % _N_CURVE_, point)
+        return result
+    scalar_binary = bin(scalar)[2:]
     jacobian = to_jacobian(point)
     current = jacobian
-    for i in range(1, len(scalarbin)):
+    for i in range(1, len(scalar_binary)):
         current = jacobian_point_doubling(current)
-        if scalarbin[i] == "1":
+        if scalar_binary[i] == "1":
             current = jacobian_point_addition(jacobian, current)
     affine = from_jacobian(current)
     result = affine
     assert is_on_curve(result)
-    return result  # type: ignore
+    return result
 
 
 if __name__ == "__main__":

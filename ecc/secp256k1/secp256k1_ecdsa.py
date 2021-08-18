@@ -22,7 +22,7 @@ along with this program. If not, see https://www.gnu.org/licenses/ .
 
 Elliptic Curve Cryptography (ECC)
 
-Module to creates and verifies ECDSA-Signature in secp256k1 elliptic
+Module to creates and verifies ECDSA-Signature in SECP256K1 elliptic
 curve, using Weierstrass form.
 
 
@@ -82,7 +82,7 @@ def ecdsa_verification(public_key: Point,
     uq = (r * w) % N
     xp = ec_point_multiplication(up, G)
     xq = ec_point_multiplication(uq, QA)
-    xr, _ = ec_point_addition(xp, xq)  # type: ignore
+    xr, _ = ec_point_addition(xp, xq)
     if r % N == xr % N:
         result = True
     return result
