@@ -20,10 +20,9 @@ along with this program. If not, see https://www.gnu.org/licenses/ .
 
 [ ABOUT ] :
 
-Elliptic Curve Cryptography (ECC)
-
-Module to creates and verifies ECDSA-Signature in SECP256K1 elliptic
-curve, using Weierstrass form.
+Elliptic Curve Cryptography (ECC).
+Module to creates and verifies ECDSA-Signature with elliptic curve
+SECP256K1, using the Weierstrass form.
 
 
     Source:
