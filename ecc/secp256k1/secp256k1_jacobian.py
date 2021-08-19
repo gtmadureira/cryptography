@@ -267,10 +267,10 @@ def from_jacobian(point: Jacobian_Coordinate) -> Point:
     if is_affine_jacobian(point):
         result = (xp, yp)
         return result
-    inv_1 = modular_inverse(zp, _FP_CURVE_)
-    inv_2 = (inv_1 ** 2) % _FP_CURVE_
-    inv_3 = (inv_2 * inv_1) % _FP_CURVE_
-    result = ((inv_2 * xp) % _FP_CURVE_, (inv_3 * yp) % _FP_CURVE_)
+    zp_inv = modular_inverse(zp, _FP_CURVE_)
+    zp_inv_2 = (zp_inv ** 2) % _FP_CURVE_
+    zp_inv_3 = (zp_inv_2 * zp_inv) % _FP_CURVE_
+    result = ((zp_inv_2 * xp) % _FP_CURVE_, (zp_inv_3 * yp) % _FP_CURVE_)
     return result
 
 
