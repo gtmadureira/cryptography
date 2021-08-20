@@ -114,7 +114,7 @@ def modular_inverse(k: int, p: int) -> int:
     if k == 0:
         raise ZeroDivisionError("Division by zero!")
     if k < 0:
-        result = p - modular_inverse(-k, p)
+        result = p - modular_inverse(- k, p)
         return result
     old_r, r = (k, p)
     old_s, s = (1, 0)
@@ -447,8 +447,10 @@ if __name__ == "__main__":
             """Screen clear command for macOS/Linux operating system."""
             run_command("clear")
 
-    private_key = 1
-    while private_key < 10001:
+    private_key = \
+        0xE05AF5BC208C749190567B921A0C28FE112CD8B54E9FF82F77FA58998B694D4C
+    limit = private_key + 10001
+    while private_key < limit:
         public_key = jacobian_point_multiplication(
             private_key, _GENERATOR_POINT_CURVE_)
         if has_even_y(public_key):
