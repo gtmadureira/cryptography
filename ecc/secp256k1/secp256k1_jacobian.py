@@ -92,14 +92,14 @@ _H_CURVE_ = int_from_hex(
     "00000000 00000000 00000000 00000000 00000000 00000000 00000000 00000001")
 
 
-# The point that points to infinity on the elliptic curve will
-# abstractly be defined by:
+# The point that points to infinity on the elliptic curve will be
+# defined by:
 _POINT_INFINITY_CURVE_ = (0, 0)
 
 
 # The point that points to infinity on the elliptic curve over Jacobian
-# coordinate will abstractly be defined by:
-_POINT_INFINITY_JACOBIAN_ = (0, 1, 0)
+# coordinate will be defined by:
+_POINT_INFINITY_JACOBIAN_ = (1, 1, 0)
 
 
 def modular_inverse(k: int, p: int) -> int:
@@ -146,7 +146,7 @@ def is_infinite(point: Point) -> bool:
     Returns {True} if the {point} at infinity on the elliptic curve,
     otherwise it returns {False}.
     """
-    result = point is _POINT_INFINITY_CURVE_
+    result = point is _POINT_INFINITY_CURVE_ or 0 in point
     return result
 
 
@@ -204,7 +204,8 @@ def is_infinite_jacobian(point: Jacobian_Coordinate) -> bool:
     Returns {True} if the {point} at infinity on the elliptic curve over
     Jacobian coordinate, otherwise it returns {False}.
     """
-    result = point is _POINT_INFINITY_JACOBIAN_
+    _, _, zp = point
+    result = point is _POINT_INFINITY_JACOBIAN_ or zp == 0
     return result
 
 
@@ -406,7 +407,7 @@ def jacobian_point_multiplication(scalar: int, point: Point) -> Point:
     It doubles {Point-P} and adds {Point-P} with {Point-Q}.
     """
     assert is_on_curve(point)
-    if scalar == 0 or is_infinite(point) or 0 in point:
+    if scalar == 0 or is_infinite(point):
         result = _POINT_INFINITY_CURVE_
         return result
     if scalar < 0 or scalar >= _N_CURVE_:

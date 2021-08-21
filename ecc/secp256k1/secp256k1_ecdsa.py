@@ -84,6 +84,7 @@ def ecdsa_verification(public_key: Point,
     xr, _ = ec_point_addition(xp, xq)
     if r % N == xr % N:
         result = True
+        return result
     return result
 
 

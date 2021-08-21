@@ -91,8 +91,8 @@ _H_CURVE_ = int_from_hex(
     "00000000 00000000 00000000 00000000 00000000 00000000 00000000 00000001")
 
 
-# The point that points to infinity on the elliptic curve will
-# abstractly be defined by:
+# The point that points to infinity on the elliptic curve will be
+# defined by:
 _POINT_INFINITY_CURVE_ = (0, 0)
 
 
@@ -140,7 +140,7 @@ def is_infinite(point: Point) -> bool:
     Returns {True} if the {point} at infinity on the elliptic curve,
     otherwise it returns {False}.
     """
-    result = point is _POINT_INFINITY_CURVE_
+    result = point is _POINT_INFINITY_CURVE_ or 0 in point
     return result
 
 
@@ -200,7 +200,7 @@ def ec_point_doubling(point_p: Point) -> Point:
     It doubles {Point-P}.
     """
     assert is_on_curve(point_p)
-    if is_infinite(point_p) or 0 in point_p:
+    if is_infinite(point_p):
         result = _POINT_INFINITY_CURVE_
         return result
     xp, yp = point_p
@@ -233,9 +233,6 @@ def ec_point_addition(point_p: Point, point_q: Point) -> Point:
         result = _POINT_INFINITY_CURVE_
         return result
     if xp == xq and yp == yq:
-        if 0 in point_p:
-            result = _POINT_INFINITY_CURVE_
-            return result
         result = ec_point_doubling(point_p)
         return result
     slope = ((yq - yp) * modular_inverse(xq - xp, _FP_CURVE_)) % _FP_CURVE_
@@ -253,7 +250,7 @@ def ec_point_multiplication(scalar: int, point: Point) -> Point:
     It doubles {Point-P} and adds {Point-P} with {Point-Q}.
     """
     assert is_on_curve(point)
-    if scalar == 0 or is_infinite(point) or 0 in point:
+    if scalar == 0 or is_infinite(point):
         result = _POINT_INFINITY_CURVE_
         return result
     if scalar < 0 or scalar >= _N_CURVE_:
