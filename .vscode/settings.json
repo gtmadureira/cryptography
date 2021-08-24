@@ -1,4 +1,7 @@
-{
+{   
+    "codesnap.realLineNumbers": false,
+    "codesnap.backgroundColor": "#282a36",
+    "codesnap.showWindowControls": false,
     "editor.wordWrap": "on",
     "editor.rulers": [72, 79],
     "cSpell.enabled": false,

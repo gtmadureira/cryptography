@@ -399,10 +399,34 @@ def jacobian_point_addition(
     return result
 
 
-def jacobian_point_multiplication(scalar: int, point: Point) -> Point:
+def fast_jacobian_point_addition(point_p: Point, point_q: Point) -> Point:
     """
-    Scalar multiplication of {point} on the elliptic curve over Jacobian
-    coordinate (x, y, z).
+    Fast point addition on the elliptic curve over Jacobian coordinate
+    (x, y, z).
+
+    It adds {Point-P} with {Point-Q}.
+    """
+    assert is_on_curve(point_p)
+    assert is_on_curve(point_q)
+    if is_infinite(point_p):
+        result = point_q
+        return result
+    if is_infinite(point_q):
+        result = point_p
+        return result
+    jacobian_p = to_jacobian(point_p)
+    jacobian_q = to_jacobian(point_q)
+    jacobian_r = jacobian_point_addition_mixed(jacobian_p, jacobian_q)
+    point_r = from_jacobian(jacobian_r)
+    result = point_r
+    assert is_on_curve(result)
+    return result
+
+
+def fast_jacobian_point_multiplication(scalar: int, point: Point) -> Point:
+    """
+    Fast scalar multiplication of {point} on the elliptic curve over
+    Jacobian coordinate (x, y, z).
 
     It doubles {Point-P} and adds {Point-P} with {Point-Q}.
     """
@@ -411,7 +435,7 @@ def jacobian_point_multiplication(scalar: int, point: Point) -> Point:
         result = _POINT_INFINITY_CURVE_
         return result
     if scalar < 0 or scalar >= _N_CURVE_:
-        result = jacobian_point_multiplication(scalar % _N_CURVE_, point)
+        result = fast_jacobian_point_multiplication(scalar % _N_CURVE_, point)
         return result
     scalar_binary = bin(scalar)[2:]
     jacobian = to_jacobian(point)
@@ -452,7 +476,7 @@ if __name__ == "__main__":
         0xE05AF5BC208C749190567B921A0C28FE112CD8B54E9FF82F77FA58998B694D4C
     limit = private_key + 10001
     while private_key < limit:
-        public_key = jacobian_point_multiplication(
+        public_key = fast_jacobian_point_multiplication(
             private_key, _GENERATOR_POINT_CURVE_)
         if has_even_y(public_key):
             prefix = "02"

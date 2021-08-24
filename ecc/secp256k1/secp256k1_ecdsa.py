@@ -22,7 +22,7 @@ with this program. If not, see https://www.gnu.org/licenses/.
 
 Elliptic Curve Cryptography (ECC).
 Module to creates and verifies ECDSA-Signature with elliptic curve
-SECP256K1, using the Weierstrass form.
+SECP256K1, using the Jacobian form.
 
 
     Source:
@@ -38,8 +38,9 @@ SECP256K1, using the Weierstrass form.
 
 from typing import Tuple
 from random import randrange
-from secp256k1_weierstrass import _GENERATOR_POINT_CURVE_, _N_CURVE_, \
-    modular_inverse, ec_point_addition, ec_point_multiplication
+from secp256k1_jacobian import _GENERATOR_POINT_CURVE_, _N_CURVE_, \
+    modular_inverse, fast_jacobian_point_addition, \
+    fast_jacobian_point_multiplication
 
 
 # Type Hints.
@@ -58,7 +59,7 @@ def ecdsa_signature(private_key: int, message_hash: bytes) -> Signature:
     dA = private_key
     z = data_hash
     k = random_number
-    xp, _ = ec_point_multiplication(k, G)
+    xp, _ = fast_jacobian_point_multiplication(k, G)
     r = xp % N
     s = (modular_inverse(k, N) * (z + r * dA)) % N
     result = (r, s)
@@ -79,9 +80,9 @@ def ecdsa_verification(public_key: Point,
     w = modular_inverse(s, N)
     up = (z * w) % N
     uq = (r * w) % N
-    xp = ec_point_multiplication(up, G)
-    xq = ec_point_multiplication(uq, QA)
-    xr, _ = ec_point_addition(xp, xq)
+    xp = fast_jacobian_point_multiplication(up, G)
+    xq = fast_jacobian_point_multiplication(uq, QA)
+    xr, _ = fast_jacobian_point_addition(xp, xq)
     if r % N == xr % N:
         result = True
         return result
@@ -92,7 +93,7 @@ if __name__ == "__main__":
 
     # ECDSA-Signature test.
     from hashlib import sha256
-    from secp256k1_weierstrass import int_from_hex, x, y
+    from secp256k1_jacobian import int_from_hex, x, y
 
     def hasher_double_sha256(data: bytes) -> bytes:
         """Get double hash through SHA-256."""
@@ -103,7 +104,7 @@ if __name__ == "__main__":
         "E05AF5BC 208C7491 90567B92 1A0C28FE"
         "112CD8B5 4E9FF82F 77FA5899 8B694D4C")
 
-    public_key = ec_point_multiplication(private_key, G)
+    public_key = fast_jacobian_point_multiplication(private_key, G)
 
     message = b"My name is Gustavo Madureira. This is a ECDSA-Signature test."
 
