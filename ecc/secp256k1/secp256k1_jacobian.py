@@ -106,8 +106,8 @@ def modular_inverse(k: int, p: int) -> int:
     """
     Extended Euclidean algorithm/division on the elliptic curve.
 
-    Returns the multiplicative inverse of {k mod p}. Where the only
-    integer {x} is defined such that (k * x) % p == 1.
+    Returns the multiplicative inverse of {k % p}. Where the only
+    integer {x} is defined such that {(k * x) % p == 1}.
 
     {k} must be non-zero and {p} must be a prime.
     """
@@ -143,8 +143,8 @@ def modular_inverse(k: int, p: int) -> int:
 
 def is_infinite(point: Point) -> bool:
     """
-    Returns {True} if the {point} at infinity on the elliptic curve,
-    otherwise it returns {False}.
+    Returns True if the point at infinity on the elliptic curve,
+    otherwise it returns False.
     """
     result = point is _POINT_INFINITY_CURVE_ or 0 in point
     return result
@@ -152,8 +152,8 @@ def is_infinite(point: Point) -> bool:
 
 def is_on_curve(point: Point) -> bool:
     """
-    Returns {True} if the {point} lies on the elliptic curve, otherwise
-    it returns {False}.
+    Returns True if the point lies on the elliptic curve, otherwise it
+    returns False.
     """
     if is_infinite(point):
         result = True
@@ -165,7 +165,7 @@ def is_on_curve(point: Point) -> bool:
 
 def x(point: Point) -> int:
     """
-    Refers to {x} coordinate of {point}, assuming it is not at infinity,
+    Refers to {x} coordinate of point, assuming it is not at infinity,
     then returns {x}.
     """
     assert not is_infinite(point)
@@ -177,7 +177,7 @@ def x(point: Point) -> int:
 
 def y(point: Point) -> int:
     """
-    Refers to {y} coordinate of {point}, assuming it is not at infinity,
+    Refers to {y} coordinate of point, assuming it is not at infinity,
     then returns {y}.
     """
     assert not is_infinite(point)
@@ -189,8 +189,8 @@ def y(point: Point) -> int:
 
 def has_even_y(point: Point) -> bool:
     """
-    Where {point} is not at infinity, it returns {True} if
-    {yp mod 2 = 0}, otherwise it returns {False}.
+    Where point is not at infinity, it returns True if {yp mod 2 = 0},
+    otherwise it returns False.
     """
     assert not is_infinite(point)
     assert is_on_curve(point)
@@ -201,8 +201,8 @@ def has_even_y(point: Point) -> bool:
 
 def is_infinite_jacobian(point: Jacobian_Coordinate) -> bool:
     """
-    Returns {True} if the {point} at infinity on the elliptic curve over
-    Jacobian coordinate, otherwise it returns {False}.
+    Returns True if the point at infinity on the elliptic curve over
+    Jacobian coordinate, otherwise it returns False.
     """
     _, _, zp = point
     result = point is _POINT_INFINITY_JACOBIAN_ or zp == 0
@@ -211,8 +211,8 @@ def is_infinite_jacobian(point: Jacobian_Coordinate) -> bool:
 
 def is_on_curve_jacobian(point: Jacobian_Coordinate) -> bool:
     """
-    Returns {True} if the {point} lies on the elliptic curve over
-    Jacobian coordinate, otherwise it returns {False}.
+    Returns True if the point lies on the elliptic curve over Jacobian
+    coordinate, otherwise it returns False.
     """
     if is_infinite_jacobian(point):
         result = True
@@ -227,7 +227,7 @@ def is_on_curve_jacobian(point: Jacobian_Coordinate) -> bool:
 
 def is_affine_jacobian(point: Jacobian_Coordinate) -> bool:
     """
-    Returns {True} if the {point} is affine form in Jacobian coordinate
+    Returns True if the point is affine form in Jacobian coordinate
     (x, y, 1).
     """
     assert not is_infinite_jacobian(point)
@@ -238,8 +238,8 @@ def is_affine_jacobian(point: Jacobian_Coordinate) -> bool:
 
 def to_jacobian(point: Point) -> Jacobian_Coordinate:
     """
-    Convert an {affine point} to {Jacobian coordinate}, or returns
-    (0, 1, 0) if at infinity.
+    Convert an affine point to Jacobian coordinate, or returns point at
+    infinity.
 
     A Jacobian coordinate is represented as (x, y, z).
     """
@@ -255,8 +255,8 @@ def to_jacobian(point: Point) -> Jacobian_Coordinate:
 
 def from_jacobian(point: Jacobian_Coordinate) -> Point:
     """
-    Convert a {Jacobian coordinate} to {affine point}, or returns (0, 0)
-    if at infinity.
+    Convert a Jacobian coordinate to affine point, or returns point at
+    infinity.
 
     An affine point is represented as (x, y).
     """
@@ -281,7 +281,7 @@ def jacobian_point_doubling(
     Point doubling on the elliptic curve over Jacobian coordinate
     (x, y, z).
 
-    It doubles {Point-P}.
+    It doubles Point-P.
     """
     assert is_on_curve_jacobian(point_p)
     if is_infinite_jacobian(point_p):
@@ -314,7 +314,7 @@ def jacobian_point_addition_mixed(
     coordinate (x, y, z) and affine form in Jacobian coordinate
     (x, y, 1).
 
-    It adds {Point-P} with {Point-Q}.
+    It adds Point-P with Point-Q.
     """
     assert is_on_curve_jacobian(point_p)
     assert is_on_curve_jacobian(point_q)
@@ -354,7 +354,7 @@ def jacobian_point_addition(
     Point addition on the elliptic curve over Jacobian coordinate
     (x, y, z).
 
-    It adds {Point-P} with {Point-Q}.
+    It adds Point-P with Point-Q.
     """
     assert is_on_curve_jacobian(point_p)
     assert is_on_curve_jacobian(point_q)
@@ -401,10 +401,10 @@ def jacobian_point_addition(
 
 def fast_jacobian_point_addition(point_p: Point, point_q: Point) -> Point:
     """
-    Fast point addition on the elliptic curve over Jacobian coordinate
-    (x, y, z).
+    Fast point addition on the elliptic curve over affine (x, y) to
+    Jacobian coordinate (x, y, z).
 
-    It adds {Point-P} with {Point-Q}.
+    It adds Point-P with Point-Q.
     """
     assert is_on_curve(point_p)
     assert is_on_curve(point_q)
@@ -425,10 +425,10 @@ def fast_jacobian_point_addition(point_p: Point, point_q: Point) -> Point:
 
 def fast_jacobian_point_multiplication(scalar: int, point: Point) -> Point:
     """
-    Fast scalar multiplication of {point} on the elliptic curve over
-    Jacobian coordinate (x, y, z).
+    Fast scalar multiplication of point on the elliptic curve over
+    affine (x, y) to Jacobian coordinate (x, y, z).
 
-    It doubles {Point-P} and adds {Point-P} with {Point-Q}.
+    It doubles Point-P and adds Point-P with Point-Q.
     """
     assert is_on_curve(point)
     if scalar == 0 or is_infinite(point):

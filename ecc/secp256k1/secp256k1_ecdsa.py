@@ -48,6 +48,7 @@ Point = Tuple[int, int]
 Signature = Tuple[int, int]
 
 
+# Generator point and curve order.
 G = _GENERATOR_POINT_CURVE_
 N = _N_CURVE_
 

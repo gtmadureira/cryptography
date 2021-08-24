@@ -100,8 +100,8 @@ def modular_inverse(k: int, p: int) -> int:
     """
     Extended Euclidean algorithm/division on the elliptic curve.
 
-    Returns the multiplicative inverse of {k mod p}. Where the only
-    integer {x} is defined such that (k * x) % p == 1.
+    Returns the multiplicative inverse of {k % p}. Where the only
+    integer {x} is defined such that {(k * x) % p == 1}.
 
     {k} must be non-zero and {p} must be a prime.
     """
@@ -137,8 +137,8 @@ def modular_inverse(k: int, p: int) -> int:
 
 def is_infinite(point: Point) -> bool:
     """
-    Returns {True} if the {point} at infinity on the elliptic curve,
-    otherwise it returns {False}.
+    Returns True if the point at infinity on the elliptic curve,
+    otherwise it returns False.
     """
     result = point is _POINT_INFINITY_CURVE_ or 0 in point
     return result
@@ -146,8 +146,8 @@ def is_infinite(point: Point) -> bool:
 
 def is_on_curve(point: Point) -> bool:
     """
-    Returns {True} if the {point} lies on the elliptic curve, otherwise
-    it returns {False}.
+    Returns True if the point lies on the elliptic curve, otherwise it
+    returns False.
     """
     if is_infinite(point):
         result = True
@@ -159,7 +159,7 @@ def is_on_curve(point: Point) -> bool:
 
 def x(point: Point) -> int:
     """
-    Refers to {x} coordinate of {point}, assuming it is not at infinity,
+    Refers to {x} coordinate of point, assuming it is not at infinity,
     then returns {x}.
     """
     assert not is_infinite(point)
@@ -171,7 +171,7 @@ def x(point: Point) -> int:
 
 def y(point: Point) -> int:
     """
-    Refers to {y} coordinate of {point}, assuming it is not at infinity,
+    Refers to {y} coordinate of point, assuming it is not at infinity,
     then returns {y}.
     """
     assert not is_infinite(point)
@@ -183,8 +183,8 @@ def y(point: Point) -> int:
 
 def has_even_y(point: Point) -> bool:
     """
-    Where {point} is not at infinity, it returns {True} if
-    {yp mod 2 = 0}, otherwise it returns {False}.
+    Where point is not at infinity, it returns True if {yp mod 2 = 0},
+    otherwise it returns False.
     """
     assert not is_infinite(point)
     assert is_on_curve(point)
@@ -197,7 +197,7 @@ def ec_point_doubling(point_p: Point) -> Point:
     """
     Point doubling on the elliptic curve.
 
-    It doubles {Point-P}.
+    It doubles Point-P.
     """
     assert is_on_curve(point_p)
     if is_infinite(point_p):
@@ -217,7 +217,7 @@ def ec_point_addition(point_p: Point, point_q: Point) -> Point:
     """
     Point addition on the elliptic curve.
 
-    It adds {Point-P} with {Point-Q}.
+    It adds Point-P with Point-Q.
     """
     assert is_on_curve(point_p)
     assert is_on_curve(point_q)
@@ -245,9 +245,9 @@ def ec_point_addition(point_p: Point, point_q: Point) -> Point:
 
 def ec_point_multiplication(scalar: int, point: Point) -> Point:
     """
-    Scalar multiplication of {point} on the elliptic curve.
+    Scalar multiplication of point on the elliptic curve.
 
-    It doubles {Point-P} and adds {Point-P} with {Point-Q}.
+    It doubles Point-P and adds Point-P with Point-Q.
     """
     assert is_on_curve(point)
     if scalar == 0 or is_infinite(point):
