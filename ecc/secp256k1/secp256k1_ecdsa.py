@@ -36,9 +36,9 @@ SECP256K1, using the Jacobian form.
 """
 
 
-from typing import Tuple
 from random import randrange
-from secp256k1_jacobian import _GENERATOR_POINT_CURVE_, _N_CURVE_, \
+from typing import Final, Tuple
+from secp256k1_jacobian import GENERATOR_POINT_CURVE, N_CURVE, \
     modular_inverse, fast_jacobian_point_addition, \
     fast_jacobian_point_multiplication
 
@@ -49,8 +49,8 @@ Signature = Tuple[int, int]
 
 
 # Generator point and curve order.
-G = _GENERATOR_POINT_CURVE_
-N = _N_CURVE_
+G: Final[Point] = GENERATOR_POINT_CURVE
+N: Final[int] = N_CURVE
 
 
 def ecdsa_signature(private_key: int, message_hash: bytes) -> Signature:
@@ -94,16 +94,15 @@ if __name__ == "__main__":
 
     # ECDSA-Signature test.
     from hashlib import sha256
-    from secp256k1_jacobian import int_from_hex, x, y
+    from secp256k1_jacobian import x, y
 
     def hasher_double_sha256(data: bytes) -> bytes:
         """Get double hash through SHA-256."""
         result = sha256(sha256(data).digest()).digest()
         return result
 
-    private_key = int_from_hex(
-        "E05AF5BC 208C7491 90567B92 1A0C28FE"
-        "112CD8B5 4E9FF82F 77FA5899 8B694D4C")
+    private_key = \
+        0xE05AF5BC208C749190567B921A0C28FE112CD8B54E9FF82F77FA58998B694D4C
 
     public_key = fast_jacobian_point_multiplication(private_key, G)
 

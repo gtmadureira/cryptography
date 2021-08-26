@@ -1,13 +1,17 @@
-from secp256k1_weierstrass import _GENERATOR_POINT_CURVE_, int_from_hex, \
-    has_even_y, ec_point_multiplication
+from typing import Final, Tuple
 from secp256k1_jacobian import fast_jacobian_point_multiplication
+from secp256k1_weierstrass import GENERATOR_POINT_CURVE, has_even_y, \
+    ec_point_multiplication
 
 
-G = _GENERATOR_POINT_CURVE_
+Point = Tuple[int, int]
 
 
-private_key = int_from_hex(
-    "E05AF5BC 208C7491 90567B92 1A0C28FE 112CD8B5 4E9FF82F 77FA5899 8B694D4C")
+G: Final[Point] = GENERATOR_POINT_CURVE
+
+
+private_key = \
+    0xE05AF5BC208C749190567B921A0C28FE112CD8B54E9FF82F77FA58998B694D4C
 
 
 public_key_w = ec_point_multiplication(private_key, G)

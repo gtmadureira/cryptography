@@ -42,7 +42,7 @@ the Jacobian form.
 """
 
 
-from typing import Tuple
+from typing import Final, Tuple
 
 
 # Type Hints.
@@ -50,56 +50,45 @@ Point = Tuple[int, int]
 Jacobian_Coordinate = Tuple[int, int, int]
 
 
-def int_from_hex(hexadecimal_string: str) -> int:
-    """Converts the hexadecimal string to integer."""
-    result = int(
-        "0x" + "".join(hexadecimal_string.replace(":", "").split()), 16)
-    return result
-
-
 #       Mathematical domain parameters of the elliptic curve SECP256K1.
 #       Source: https://www.secg.org/sec2-v2.pdf
 
 
 # The finite field (Fp) is defined by:
-_FP_CURVE_ = int_from_hex(
-    "FFFFFFFF FFFFFFFF FFFFFFFF FFFFFFFF FFFFFFFF FFFFFFFF FFFFFFFE FFFFFC2F")
+FP_CURVE: Final[int] = \
+    0xFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFEFFFFFC2F
 
 
 # The elliptic curve (y^2 = x^3 + ax + b) over Fp is defined by:
-_A_CURVE_ = int_from_hex(
-    "00000000 00000000 00000000 00000000 00000000 00000000 00000000 00000000")
+A_CURVE: Final[int] = \
+    0x0000000000000000000000000000000000000000000000000000000000000000
 
-_B_CURVE_ = int_from_hex(
-    "00000000 00000000 00000000 00000000 00000000 00000000 00000000 00000007")
+B_CURVE: Final[int] = \
+    0x0000000000000000000000000000000000000000000000000000000000000007
 
 
 # The generator point is defined by:
-_GX_CURVE_ = int_from_hex(
-    "79BE667E F9DCBBAC 55A06295 CE870B07 029BFCDB 2DCE28D9 59F2815B 16F81798")
-
-_GY_CURVE_ = int_from_hex(
-    "483ADA77 26A3C465 5DA4FBFC 0E1108A8 FD17B448 A6855419 9C47D08F FB10D4B8")
-
-_GENERATOR_POINT_CURVE_: Point = (_GX_CURVE_, _GY_CURVE_)
+GENERATOR_POINT_CURVE: Final[Point] = \
+    (0x79BE667EF9DCBBAC55A06295CE870B07029BFCDB2DCE28D959F2815B16F81798,
+     0x483ADA7726A3C4655DA4FBFC0E1108A8FD17B448A68554199C47D08FFB10D4B8)
 
 
 # The order of generator point and the cofactor are defined by:
-_N_CURVE_ = int_from_hex(
-    "FFFFFFFF FFFFFFFF FFFFFFFF FFFFFFFE BAAEDCE6 AF48A03B BFD25E8C D0364141")
+N_CURVE: Final[int] = \
+    0xFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFEBAAEDCE6AF48A03BBFD25E8CD0364141
 
-_H_CURVE_ = int_from_hex(
-    "00000000 00000000 00000000 00000000 00000000 00000000 00000000 00000001")
+H_CURVE: Final[int] = \
+    0x0000000000000000000000000000000000000000000000000000000000000001
 
 
 # The point that points to infinity on the elliptic curve will be
 # defined by:
-_POINT_INFINITY_CURVE_ = (0, 0)
+POINT_INFINITY_CURVE: Final[Point] = (0, 0)
 
 
 # The point that points to infinity on the elliptic curve over Jacobian
 # coordinate will be defined by:
-_POINT_INFINITY_JACOBIAN_ = (1, 1, 0)
+POINT_INFINITY_JACOBIAN: Final[Jacobian_Coordinate] = (1, 1, 0)
 
 
 def modular_inverse(k: int, p: int) -> int:
@@ -146,7 +135,7 @@ def is_infinite(point: Point) -> bool:
     Returns True if the point at infinity on the elliptic curve,
     otherwise it returns False.
     """
-    result = point is _POINT_INFINITY_CURVE_ or 0 in point
+    result = point is POINT_INFINITY_CURVE or 0 in point
     return result
 
 
@@ -159,7 +148,8 @@ def is_on_curve(point: Point) -> bool:
         result = True
         return result
     xp, yp = point
-    result = (yp ** 2 - xp ** 3 - _A_CURVE_ * xp - _B_CURVE_) % _FP_CURVE_ == 0
+    result = (pow(yp, 2, FP_CURVE) - pow(xp, 3, FP_CURVE) -
+              A_CURVE * xp - B_CURVE) % FP_CURVE == 0
     return result
 
 
@@ -205,7 +195,7 @@ def is_infinite_jacobian(point: Jacobian_Coordinate) -> bool:
     Jacobian coordinate, otherwise it returns False.
     """
     _, _, zp = point
-    result = point is _POINT_INFINITY_JACOBIAN_ or zp == 0
+    result = point is POINT_INFINITY_JACOBIAN or zp == 0
     return result
 
 
@@ -218,10 +208,10 @@ def is_on_curve_jacobian(point: Jacobian_Coordinate) -> bool:
         result = True
         return result
     xp, yp, zp = point
-    zp_2 = (zp ** 2) % _FP_CURVE_
-    zp_4 = (zp_2 ** 2) % _FP_CURVE_
-    result = (yp ** 2 - xp ** 3 - _A_CURVE_ * xp * zp_4 -
-              _B_CURVE_ * zp_2 * zp_4) % _FP_CURVE_ == 0
+    zp_2 = pow(zp, 2, FP_CURVE)
+    zp_4 = pow(zp, 4, FP_CURVE)
+    result = (pow(yp, 2, FP_CURVE) - pow(xp, 3, FP_CURVE) -
+              A_CURVE * xp * zp_4 - B_CURVE * zp_2 * zp_4) % FP_CURVE == 0
     return result
 
 
@@ -245,7 +235,7 @@ def to_jacobian(point: Point) -> Jacobian_Coordinate:
     """
     assert is_on_curve(point)
     if is_infinite(point):
-        result = _POINT_INFINITY_JACOBIAN_
+        result = POINT_INFINITY_JACOBIAN
         return result
     xp, yp = point
     xp, yp, zp = (xp, yp, 1)
@@ -262,16 +252,16 @@ def from_jacobian(point: Jacobian_Coordinate) -> Point:
     """
     assert is_on_curve_jacobian(point)
     if is_infinite_jacobian(point):
-        result = _POINT_INFINITY_CURVE_
+        result = POINT_INFINITY_CURVE
         return result
     xp, yp, zp = point
     if is_affine_jacobian(point):
         result = (xp, yp)
         return result
-    zp_inv = modular_inverse(zp, _FP_CURVE_)
-    zp_inv_2 = (zp_inv ** 2) % _FP_CURVE_
-    zp_inv_3 = (zp_inv_2 * zp_inv) % _FP_CURVE_
-    result = ((zp_inv_2 * xp) % _FP_CURVE_, (zp_inv_3 * yp) % _FP_CURVE_)
+    zp_inv = modular_inverse(zp, FP_CURVE)
+    zp_inv_2 = pow(zp_inv, 2, FP_CURVE)
+    zp_inv_3 = pow(zp_inv, 3, FP_CURVE)
+    result = ((zp_inv_2 * xp) % FP_CURVE, (zp_inv_3 * yp) % FP_CURVE)
     return result
 
 
@@ -285,22 +275,21 @@ def jacobian_point_doubling(
     """
     assert is_on_curve_jacobian(point_p)
     if is_infinite_jacobian(point_p):
-        result = _POINT_INFINITY_JACOBIAN_
+        result = POINT_INFINITY_JACOBIAN
         return result
     xp, yp, zp = point_p
-    xp_2 = (xp ** 2) % _FP_CURVE_
-    yp_2 = (yp ** 2) % _FP_CURVE_
-    yp_4 = (yp_2 ** 2) % _FP_CURVE_
-    s = (4 * xp * yp_2) % _FP_CURVE_
-    m = (3 * xp_2) % _FP_CURVE_
-    if _A_CURVE_:
-        zp_2 = (zp ** 2) % _FP_CURVE_
-        zp_4 = (zp_2 ** 4) % _FP_CURVE_
-        m += (_A_CURVE_ * zp_4) % _FP_CURVE_
-    m = m % _FP_CURVE_
-    xr = (m ** 2 - 2 * s) % _FP_CURVE_
-    yr = (m * (s - xr) - 8 * yp_4) % _FP_CURVE_
-    zr = (2 * yp * zp) % _FP_CURVE_
+    xp_2 = pow(xp, 2, FP_CURVE)
+    yp_2 = pow(yp, 2, FP_CURVE)
+    yp_4 = pow(yp, 4, FP_CURVE)
+    s = (4 * xp * yp_2) % FP_CURVE
+    m = (3 * xp_2) % FP_CURVE
+    if A_CURVE:
+        zp_4 = pow(zp, 4, FP_CURVE)
+        m += (A_CURVE * zp_4) % FP_CURVE
+    m = m % FP_CURVE
+    xr = (pow(m, 2, FP_CURVE) - 2 * s) % FP_CURVE
+    yr = (m * (s - xr) - 8 * yp_4) % FP_CURVE
+    zr = (2 * yp * zp) % FP_CURVE
     result = (xr, yr, zr)
     assert is_on_curve_jacobian(result)
     return result
@@ -324,24 +313,24 @@ def jacobian_point_addition_mixed(
         return result
     xp, yp, zp = point_p
     xq, yq, _ = point_q
-    zp_2 = (zp ** 2) % _FP_CURVE_
-    zp_3 = (zp_2 * zp) % _FP_CURVE_
-    uq = (xq * zp_2) % _FP_CURVE_
-    sq = (yq * zp_3) % _FP_CURVE_
+    zp_2 = pow(zp, 2, FP_CURVE)
+    zp_3 = pow(zp, 3, FP_CURVE)
+    uq = (xq * zp_2) % FP_CURVE
+    sq = (yq * zp_3) % FP_CURVE
     if xp == uq and yp != sq:
-        result = _POINT_INFINITY_JACOBIAN_
+        result = POINT_INFINITY_JACOBIAN
         return result
     if xp == uq and yp == sq:
         result = jacobian_point_doubling(point_p)
         return result
-    h = (uq - xp) % _FP_CURVE_
-    r = (sq - yp) % _FP_CURVE_
-    h_2 = (h ** 2) % _FP_CURVE_
-    h_3 = (h_2 * h) % _FP_CURVE_
-    xp_h_2 = (xp * h_2) % _FP_CURVE_
-    xr = (r ** 2 - h_3 - 2 * xp_h_2) % _FP_CURVE_
-    yr = (r * (xp_h_2 - xr) - yp * h_3) % _FP_CURVE_
-    zr = (h * zp) % _FP_CURVE_
+    h = (uq - xp) % FP_CURVE
+    r = (sq - yp) % FP_CURVE
+    h_2 = pow(h, 2, FP_CURVE)
+    h_3 = pow(h, 3, FP_CURVE)
+    xp_h_2 = (xp * h_2) % FP_CURVE
+    xr = (pow(r, 2, FP_CURVE) - h_3 - 2 * xp_h_2) % FP_CURVE
+    yr = (r * (xp_h_2 - xr) - yp * h_3) % FP_CURVE
+    zr = (h * zp) % FP_CURVE
     result = (xr, yr, zr)
     assert is_on_curve_jacobian(result)
     return result
@@ -372,28 +361,28 @@ def jacobian_point_addition(
         return result
     xp, yp, zp = point_p
     xq, yq, zq = point_q
-    zp_2 = (zp ** 2) % _FP_CURVE_
-    zp_3 = (zp_2 * zp) % _FP_CURVE_
-    zq_2 = (zq ** 2) % _FP_CURVE_
-    zq_3 = (zq_2 * zq) % _FP_CURVE_
-    up = (xp * zq_2) % _FP_CURVE_
-    uq = (xq * zp_2) % _FP_CURVE_
-    sp = (yp * zq_3) % _FP_CURVE_
-    sq = (yq * zp_3) % _FP_CURVE_
+    zp_2 = pow(zp, 2, FP_CURVE)
+    zp_3 = pow(zp, 3, FP_CURVE)
+    zq_2 = pow(zq, 2, FP_CURVE)
+    zq_3 = pow(zq, 3, FP_CURVE)
+    up = (xp * zq_2) % FP_CURVE
+    uq = (xq * zp_2) % FP_CURVE
+    sp = (yp * zq_3) % FP_CURVE
+    sq = (yq * zp_3) % FP_CURVE
     if up == uq and sp != sq:
-        result = _POINT_INFINITY_JACOBIAN_
+        result = POINT_INFINITY_JACOBIAN
         return result
     if up == uq and sp == sq:
         result = jacobian_point_doubling(point_p)
         return result
-    h = (uq - up) % _FP_CURVE_
-    r = (sq - sp) % _FP_CURVE_
-    h_2 = (h ** 2) % _FP_CURVE_
-    h_3 = (h_2 * h) % _FP_CURVE_
-    up_h_2 = (up * h_2) % _FP_CURVE_
-    xr = (r ** 2 - h_3 - 2 * up_h_2) % _FP_CURVE_
-    yr = (r * (up_h_2 - xr) - sp * h_3) % _FP_CURVE_
-    zr = (h * zp * zq) % _FP_CURVE_
+    h = (uq - up) % FP_CURVE
+    r = (sq - sp) % FP_CURVE
+    h_2 = pow(h, 2, FP_CURVE)
+    h_3 = pow(h, 3, FP_CURVE)
+    up_h_2 = (up * h_2) % FP_CURVE
+    xr = (pow(r, 2, FP_CURVE) - h_3 - 2 * up_h_2) % FP_CURVE
+    yr = (r * (up_h_2 - xr) - sp * h_3) % FP_CURVE
+    zr = (h * zp * zq) % FP_CURVE
     result = (xr, yr, zr)
     assert is_on_curve_jacobian(result)
     return result
@@ -432,10 +421,10 @@ def fast_jacobian_point_multiplication(scalar: int, point: Point) -> Point:
     """
     assert is_on_curve(point)
     if scalar == 0 or is_infinite(point):
-        result = _POINT_INFINITY_CURVE_
+        result = POINT_INFINITY_CURVE
         return result
-    if scalar < 0 or scalar >= _N_CURVE_:
-        result = fast_jacobian_point_multiplication(scalar % _N_CURVE_, point)
+    if scalar < 0 or scalar >= N_CURVE:
+        result = fast_jacobian_point_multiplication(scalar % N_CURVE, point)
         return result
     scalar_binary = bin(scalar)[2:]
     jacobian = to_jacobian(point)
@@ -477,7 +466,7 @@ if __name__ == "__main__":
     limit = private_key + 10001
     while private_key < limit:
         public_key = fast_jacobian_point_multiplication(
-            private_key, _GENERATOR_POINT_CURVE_)
+            private_key, GENERATOR_POINT_CURVE)
         if has_even_y(public_key):
             prefix = "02"
         else:

@@ -42,18 +42,11 @@ the Weierstrass form.
 """
 
 
-from typing import Tuple
+from typing import Final, Tuple
 
 
 # Type Hints.
 Point = Tuple[int, int]
-
-
-def int_from_hex(hexadecimal_string: str) -> int:
-    """Converts the hexadecimal string to integer."""
-    result = int(
-        "0x" + "".join(hexadecimal_string.replace(":", "").split()), 16)
-    return result
 
 
 #       Mathematical domain parameters of the elliptic curve SECP256K1.
@@ -61,39 +54,35 @@ def int_from_hex(hexadecimal_string: str) -> int:
 
 
 # The finite field (Fp) is defined by:
-_FP_CURVE_ = int_from_hex(
-    "FFFFFFFF FFFFFFFF FFFFFFFF FFFFFFFF FFFFFFFF FFFFFFFF FFFFFFFE FFFFFC2F")
+FP_CURVE: Final[int] = \
+    0xFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFEFFFFFC2F
 
 
 # The elliptic curve (y^2 = x^3 + ax + b) over Fp is defined by:
-_A_CURVE_ = int_from_hex(
-    "00000000 00000000 00000000 00000000 00000000 00000000 00000000 00000000")
+A_CURVE: Final[int] = \
+    0x0000000000000000000000000000000000000000000000000000000000000000
 
-_B_CURVE_ = int_from_hex(
-    "00000000 00000000 00000000 00000000 00000000 00000000 00000000 00000007")
+B_CURVE: Final[int] = \
+    0x0000000000000000000000000000000000000000000000000000000000000007
 
 
 # The generator point is defined by:
-_GX_CURVE_ = int_from_hex(
-    "79BE667E F9DCBBAC 55A06295 CE870B07 029BFCDB 2DCE28D9 59F2815B 16F81798")
-
-_GY_CURVE_ = int_from_hex(
-    "483ADA77 26A3C465 5DA4FBFC 0E1108A8 FD17B448 A6855419 9C47D08F FB10D4B8")
-
-_GENERATOR_POINT_CURVE_: Point = (_GX_CURVE_, _GY_CURVE_)
+GENERATOR_POINT_CURVE: Final[Point] = \
+    (0x79BE667EF9DCBBAC55A06295CE870B07029BFCDB2DCE28D959F2815B16F81798,
+     0x483ADA7726A3C4655DA4FBFC0E1108A8FD17B448A68554199C47D08FFB10D4B8)
 
 
 # The order of generator point and the cofactor are defined by:
-_N_CURVE_ = int_from_hex(
-    "FFFFFFFF FFFFFFFF FFFFFFFF FFFFFFFE BAAEDCE6 AF48A03B BFD25E8C D0364141")
+N_CURVE: Final[int] = \
+    0xFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFEBAAEDCE6AF48A03BBFD25E8CD0364141
 
-_H_CURVE_ = int_from_hex(
-    "00000000 00000000 00000000 00000000 00000000 00000000 00000000 00000001")
+H_CURVE: Final[int] = \
+    0x0000000000000000000000000000000000000000000000000000000000000001
 
 
 # The point that points to infinity on the elliptic curve will be
 # defined by:
-_POINT_INFINITY_CURVE_ = (0, 0)
+POINT_INFINITY_CURVE: Final[Point] = (0, 0)
 
 
 def modular_inverse(k: int, p: int) -> int:
@@ -140,7 +129,7 @@ def is_infinite(point: Point) -> bool:
     Returns True if the point at infinity on the elliptic curve,
     otherwise it returns False.
     """
-    result = point is _POINT_INFINITY_CURVE_ or 0 in point
+    result = point is POINT_INFINITY_CURVE or 0 in point
     return result
 
 
@@ -153,7 +142,8 @@ def is_on_curve(point: Point) -> bool:
         result = True
         return result
     xp, yp = point
-    result = (yp ** 2 - xp ** 3 - _A_CURVE_ * xp - _B_CURVE_) % _FP_CURVE_ == 0
+    result = (pow(yp, 2, FP_CURVE) - pow(xp, 3, FP_CURVE) -
+              A_CURVE * xp - B_CURVE) % FP_CURVE == 0
     return result
 
 
@@ -201,13 +191,13 @@ def ec_point_doubling(point_p: Point) -> Point:
     """
     assert is_on_curve(point_p)
     if is_infinite(point_p):
-        result = _POINT_INFINITY_CURVE_
+        result = POINT_INFINITY_CURVE
         return result
     xp, yp = point_p
-    slope = ((3 * xp ** 2 + _A_CURVE_) *
-             modular_inverse(2 * yp, _FP_CURVE_)) % _FP_CURVE_
-    xr = (slope ** 2 - 2 * xp) % _FP_CURVE_
-    yr = (slope * (xp - xr) - yp) % _FP_CURVE_
+    slope = ((3 * pow(xp, 2, FP_CURVE) + A_CURVE) *
+             modular_inverse(2 * yp, FP_CURVE)) % FP_CURVE
+    xr = (pow(slope, 2, FP_CURVE) - 2 * xp) % FP_CURVE
+    yr = (slope * (xp - xr) - yp) % FP_CURVE
     result = (xr, yr)
     assert is_on_curve(result)
     return result
@@ -230,14 +220,14 @@ def ec_point_addition(point_p: Point, point_q: Point) -> Point:
     xp, yp = point_p
     xq, yq = point_q
     if xp == xq and yp != yq:
-        result = _POINT_INFINITY_CURVE_
+        result = POINT_INFINITY_CURVE
         return result
     if xp == xq and yp == yq:
         result = ec_point_doubling(point_p)
         return result
-    slope = ((yq - yp) * modular_inverse(xq - xp, _FP_CURVE_)) % _FP_CURVE_
-    xr = (slope ** 2 - xp - xq) % _FP_CURVE_
-    yr = (slope * (xp - xr) - yp) % _FP_CURVE_
+    slope = ((yq - yp) * modular_inverse(xq - xp, FP_CURVE)) % FP_CURVE
+    xr = (pow(slope, 2, FP_CURVE) - xp - xq) % FP_CURVE
+    yr = (slope * (xp - xr) - yp) % FP_CURVE
     result = (xr, yr)
     assert is_on_curve(result)
     return result
@@ -251,10 +241,10 @@ def ec_point_multiplication(scalar: int, point: Point) -> Point:
     """
     assert is_on_curve(point)
     if scalar == 0 or is_infinite(point):
-        result = _POINT_INFINITY_CURVE_
+        result = POINT_INFINITY_CURVE
         return result
-    if scalar < 0 or scalar >= _N_CURVE_:
-        result = ec_point_multiplication(scalar % _N_CURVE_, point)
+    if scalar < 0 or scalar >= N_CURVE:
+        result = ec_point_multiplication(scalar % N_CURVE, point)
         return result
     scalar_binary = bin(scalar)[2:]
     current = point
@@ -294,7 +284,7 @@ if __name__ == "__main__":
     limit = private_key + 10001
     while private_key < limit:
         public_key = ec_point_multiplication(
-            private_key, _GENERATOR_POINT_CURVE_)
+            private_key, GENERATOR_POINT_CURVE)
         if has_even_y(public_key):
             prefix = "02"
         else:
