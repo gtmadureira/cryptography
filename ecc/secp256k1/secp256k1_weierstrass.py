@@ -26,10 +26,12 @@ the Weierstrass form.
 
 - Used to perform public key generation;
 - Used to perform digital signature generation and verification with
-  ECDSA;
+  ECDSA and Schnorr;
 - Used to perform data encryption and decryption.
 
 (Curve used in cryptocurrencies such as Bitcoin, Ethereum, etc...)
+
+Works on Python 3.8 or higher.
 
     Source:
 
@@ -80,8 +82,7 @@ H_CURVE: Final[int] = \
     0x0000000000000000000000000000000000000000000000000000000000000001
 
 
-# The point that points to infinity on the elliptic curve will be
-# defined by:
+# The point that points to infinity on the elliptic curve is defined by:
 POINT_INFINITY_CURVE: Final[Point] = (0, 0)
 
 

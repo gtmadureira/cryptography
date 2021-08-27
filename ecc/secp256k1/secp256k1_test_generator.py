@@ -1,3 +1,6 @@
+# Works on Python 3.8 or higher.
+
+
 from typing import Final, Tuple
 from secp256k1_jacobian import fast_jacobian_point_multiplication
 from secp256k1_weierstrass import GENERATOR_POINT_CURVE, has_even_y, \

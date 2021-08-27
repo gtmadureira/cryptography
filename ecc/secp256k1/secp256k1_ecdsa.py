@@ -24,6 +24,7 @@ Elliptic Curve Cryptography (ECC).
 Module to creates and verifies ECDSA-Signature with elliptic curve
 SECP256K1, using the Jacobian form.
 
+Works on Python 3.8 or higher.
 
     Source:
 
