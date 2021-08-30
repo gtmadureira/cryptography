@@ -136,7 +136,7 @@ def is_infinite(point: Point) -> bool:
     Returns True if the point at infinity on the elliptic curve,
     otherwise it returns False.
     """
-    result = point is POINT_INFINITY_CURVE or 0 in point
+    result = point == POINT_INFINITY_CURVE or 0 in point
     return result
 
 
@@ -196,7 +196,7 @@ def is_infinite_jacobian(point: Jacobian_Coordinate) -> bool:
     Jacobian coordinate, otherwise it returns False.
     """
     _, _, zp = point
-    result = point is POINT_INFINITY_JACOBIAN or zp == 0
+    result = point == POINT_INFINITY_JACOBIAN or zp == 0
     return result
 
 
@@ -464,7 +464,7 @@ if __name__ == "__main__":
 
     private_key = \
         0xE05AF5BC208C749190567B921A0C28FE112CD8B54E9FF82F77FA58998B694D4C
-    limit = private_key + 10001
+    limit = private_key + 1001
     while private_key < limit:
         public_key = fast_jacobian_point_multiplication(
             private_key, GENERATOR_POINT_CURVE)
