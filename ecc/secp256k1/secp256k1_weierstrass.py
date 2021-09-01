@@ -262,10 +262,9 @@ if __name__ == "__main__":
 
     # Elliptic curve scalar multiplication test.
     from platform import system
-    from time import sleep, perf_counter
+    from random import randrange
+    from time import perf_counter
     from subprocess import check_call as run_command
-
-    start = perf_counter()
 
     # Tests the operating system type and sets the screen clear command.
     if system() == "Windows":
@@ -280,10 +279,10 @@ if __name__ == "__main__":
             """Screen clear command for macOS/Linux operating system."""
             run_command("clear")
 
-    private_key = \
-        0xE05AF5BC208C749190567B921A0C28FE112CD8B54E9FF82F77FA58998B694D4C
-    limit = private_key + 1001
-    while private_key < limit:
+    start = perf_counter()
+    elapsed = 0.0
+    while elapsed < 900.0:
+        private_key = randrange(1, N_CURVE)
         public_key = ec_point_multiplication(
             private_key, GENERATOR_POINT_CURVE)
         if has_even_y(public_key):
@@ -295,9 +294,8 @@ if __name__ == "__main__":
                 hex(x(public_key))[2:].zfill(64).upper(),
                 hex(y(public_key))[2:].zfill(64).upper(),
                 prefix)
-        private_key += 1
-        sleep(0.0)
         clear()
+        elapsed = perf_counter() - start
         print(f"""\033[92m
         SECP256K1 at Weierstrass Form  Copyright (C) 2021  Gustavo Madureira
         This program comes with ABSOLUTELY NO WARRANTY.
@@ -305,12 +303,10 @@ if __name__ == "__main__":
         under certain conditions.
 
 
-            Point Number: {data[0]}
-             Private Key: {data[1]}
- Uncompressed Public Key: 04{data[2]}{data[3]}
-   Compressed Public Key: {data[4]}{data[2]}
-\033[0m""")
-    elapsed = perf_counter() - start
-    print(f"""\033[92m
-        Finished in {elapsed:.02f} seconds.
+           Point Number: {data[0]}
+            Private Key: {data[1]}
+Uncompressed Public Key: 04{data[2]}{data[3]}
+  Compressed Public Key: {data[4]}{data[2]}
+
+           Elapsed time: {elapsed:.02f} seconds.
 \033[0m""")

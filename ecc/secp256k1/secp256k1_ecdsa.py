@@ -80,11 +80,11 @@ def ecdsa_verification(public_key: Point,
         result = False
         return result
     w = modular_inverse(s, N)
-    up = (z * w) % N
-    uq = (r * w) % N
-    xp = fast_jacobian_point_multiplication(up, G)
-    xq = fast_jacobian_point_multiplication(uq, QA)
-    xr, _ = fast_jacobian_point_addition(xp, xq)
+    sb = (z * w) % N
+    sd = (r * w) % N
+    p = fast_jacobian_point_multiplication(sb, G)
+    q = fast_jacobian_point_multiplication(sd, QA)
+    xr, _ = fast_jacobian_point_addition(p, q)
     if r % N == xr % N:
         result = True
         return result
