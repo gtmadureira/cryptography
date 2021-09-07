@@ -88,7 +88,7 @@ POINT_INFINITY_CURVE: Final[Point] = (0, 0)
 
 
 # The point that points to infinity on the elliptic curve over Jacobian
-# coordinate will be defined by:
+# coordinate is defined by:
 POINT_INFINITY_JACOBIAN: Final[Jacobian_Coordinate] = (1, 1, 0)
 
 
