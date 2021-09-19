@@ -185,7 +185,7 @@ def has_even_y(point: Point) -> bool:
     """
     assert not is_infinite(point)
     assert is_on_curve(point)
-    _, yp = point
+    yp = y(point)
     result = yp % 2 == 0
     return result
 
@@ -389,7 +389,7 @@ def jacobian_point_addition(
     return result
 
 
-def fast_jacobian_point_addition(point_p: Point, point_q: Point) -> Point:
+def fast_point_addition(point_p: Point, point_q: Point) -> Point:
     """
     Fast point addition on the elliptic curve over affine (x, y) to
     Jacobian coordinate (x, y, z).
@@ -413,7 +413,7 @@ def fast_jacobian_point_addition(point_p: Point, point_q: Point) -> Point:
     return result
 
 
-def fast_jacobian_point_multiplication(scalar: int, point: Point) -> Point:
+def fast_scalar_multiplication(scalar: int, point: Point) -> Point:
     """
     Fast scalar multiplication of point on the elliptic curve over
     affine (x, y) to Jacobian coordinate (x, y, z).
@@ -425,7 +425,7 @@ def fast_jacobian_point_multiplication(scalar: int, point: Point) -> Point:
         result = POINT_INFINITY_CURVE
         return result
     if scalar < 0 or scalar >= N_CURVE:
-        result = fast_jacobian_point_multiplication(scalar % N_CURVE, point)
+        result = fast_scalar_multiplication(scalar % N_CURVE, point)
         return result
     scalar_binary = bin(scalar)[2:]
     jacobian = to_jacobian(point)
@@ -465,7 +465,7 @@ if __name__ == "__main__":
     elapsed = 0.0
     while elapsed < 900.0:
         private_key = randrange(1, N_CURVE)
-        public_key = fast_jacobian_point_multiplication(
+        public_key = fast_scalar_multiplication(
             private_key, GENERATOR_POINT_CURVE)
         if has_even_y(public_key):
             prefix = "02"

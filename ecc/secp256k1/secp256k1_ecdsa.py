@@ -40,8 +40,7 @@ Works on Python 3.8 or higher.
 from random import randrange
 from typing import Final, Tuple
 from secp256k1_jacobian import GENERATOR_POINT_CURVE, N_CURVE, \
-    modular_inverse, fast_jacobian_point_addition, \
-    fast_jacobian_point_multiplication
+    modular_inverse, fast_point_addition, fast_scalar_multiplication
 
 
 # Type Hints.
@@ -61,7 +60,7 @@ def ecdsa_signature(private_key: int, message_hash: bytes) -> Signature:
     dA = private_key
     z = data_hash
     k = random_number
-    xp, _ = fast_jacobian_point_multiplication(k, G)
+    xp, _ = fast_scalar_multiplication(k, G)
     r = xp % N
     s = (modular_inverse(k, N) * (z + r * dA)) % N
     result = (r, s)
@@ -82,9 +81,9 @@ def ecdsa_verification(public_key: Point,
     w = modular_inverse(s, N)
     sb = (z * w) % N
     sd = (r * w) % N
-    p = fast_jacobian_point_multiplication(sb, G)
-    q = fast_jacobian_point_multiplication(sd, QA)
-    xr, _ = fast_jacobian_point_addition(p, q)
+    p = fast_scalar_multiplication(sb, G)
+    q = fast_scalar_multiplication(sd, QA)
+    xr, _ = fast_point_addition(p, q)
     if r % N == xr % N:
         result = True
         return result
@@ -105,7 +104,7 @@ if __name__ == "__main__":
     private_key = \
         0xE05AF5BC208C749190567B921A0C28FE112CD8B54E9FF82F77FA58998B694D4C
 
-    public_key = fast_jacobian_point_multiplication(private_key, G)
+    public_key = fast_scalar_multiplication(private_key, G)
 
     message = b"My name is Gustavo Madureira. This is a ECDSA-Signature test."
 

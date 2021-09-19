@@ -179,7 +179,7 @@ def has_even_y(point: Point) -> bool:
     """
     assert not is_infinite(point)
     assert is_on_curve(point)
-    _, yp = point
+    yp = y(point)
     result = yp % 2 == 0
     return result
 
