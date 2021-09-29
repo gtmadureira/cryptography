@@ -190,25 +190,25 @@ def has_even_y(point: Point) -> bool:
     return result
 
 
-def is_infinite_jacobian(point: Jacobian_Coordinate) -> bool:
+def is_infinite_jacobian(jacobian: Jacobian_Coordinate) -> bool:
     """
     Returns True if the point at infinity on the elliptic curve over
     Jacobian coordinate, otherwise it returns False.
     """
-    _, _, zp = point
-    result = point == POINT_INFINITY_JACOBIAN or zp == 0
+    _, _, zp = jacobian
+    result = jacobian == POINT_INFINITY_JACOBIAN or zp == 0
     return result
 
 
-def is_on_curve_jacobian(point: Jacobian_Coordinate) -> bool:
+def is_on_curve_jacobian(jacobian: Jacobian_Coordinate) -> bool:
     """
     Returns True if the point lies on the elliptic curve over Jacobian
     coordinate, otherwise it returns False.
     """
-    if is_infinite_jacobian(point):
+    if is_infinite_jacobian(jacobian):
         result = True
         return result
-    xp, yp, zp = point
+    xp, yp, zp = jacobian
     zp_2 = pow(zp, 2, FP_CURVE)
     zp_4 = pow(zp, 4, FP_CURVE)
     result = (pow(yp, 2, FP_CURVE) - pow(xp, 3, FP_CURVE) -
@@ -216,13 +216,13 @@ def is_on_curve_jacobian(point: Jacobian_Coordinate) -> bool:
     return result
 
 
-def is_affine_jacobian(point: Jacobian_Coordinate) -> bool:
+def is_affine_jacobian(jacobian: Jacobian_Coordinate) -> bool:
     """
     Returns True if the point is affine form in Jacobian coordinate
     (x, y, 1).
     """
-    assert not is_infinite_jacobian(point)
-    _, _, zp = point
+    assert not is_infinite_jacobian(jacobian)
+    _, _, zp = jacobian
     result = zp == 1
     return result
 
@@ -240,45 +240,47 @@ def to_jacobian(point: Point) -> Jacobian_Coordinate:
         return result
     xp, yp = point
     xp, yp, zp = (xp, yp, 1)
-    result = (xp, yp, zp)
+    jacobian = (xp, yp, zp)
+    result = jacobian
     return result
 
 
-def from_jacobian(point: Jacobian_Coordinate) -> Point:
+def from_jacobian(jacobian: Jacobian_Coordinate) -> Point:
     """
     Convert a Jacobian coordinate to affine point, or returns point at
     infinity.
 
     An affine point is represented as (x, y).
     """
-    assert is_on_curve_jacobian(point)
-    if is_infinite_jacobian(point):
+    assert is_on_curve_jacobian(jacobian)
+    if is_infinite_jacobian(jacobian):
         result = POINT_INFINITY_CURVE
         return result
-    xp, yp, zp = point
-    if is_affine_jacobian(point):
+    xp, yp, zp = jacobian
+    if is_affine_jacobian(jacobian):
         result = (xp, yp)
         return result
     zp_inv = modular_inverse(zp, FP_CURVE)
     zp_inv_2 = pow(zp_inv, 2, FP_CURVE)
     zp_inv_3 = pow(zp_inv, 3, FP_CURVE)
-    result = ((zp_inv_2 * xp) % FP_CURVE, (zp_inv_3 * yp) % FP_CURVE)
+    point = ((zp_inv_2 * xp) % FP_CURVE, (zp_inv_3 * yp) % FP_CURVE)
+    result = point
     return result
 
 
 def jacobian_point_doubling(
-        point_p: Jacobian_Coordinate) -> Jacobian_Coordinate:
+        jacobian_p: Jacobian_Coordinate) -> Jacobian_Coordinate:
     """
     Point doubling on the elliptic curve over Jacobian coordinate
     (x, y, z).
 
     It doubles Point-P.
     """
-    assert is_on_curve_jacobian(point_p)
-    if is_infinite_jacobian(point_p):
+    assert is_on_curve_jacobian(jacobian_p)
+    if is_infinite_jacobian(jacobian_p):
         result = POINT_INFINITY_JACOBIAN
         return result
-    xp, yp, zp = point_p
+    xp, yp, zp = jacobian_p
     xp_2 = pow(xp, 2, FP_CURVE)
     yp_2 = pow(yp, 2, FP_CURVE)
     yp_4 = pow(yp, 4, FP_CURVE)
@@ -291,14 +293,15 @@ def jacobian_point_doubling(
     xr = (pow(m, 2, FP_CURVE) - 2 * s) % FP_CURVE
     yr = (m * (s - xr) - 8 * yp_4) % FP_CURVE
     zr = (2 * yp * zp) % FP_CURVE
-    result = (xr, yr, zr)
+    jacobian_r = (xr, yr, zr)
+    result = jacobian_r
     assert is_on_curve_jacobian(result)
     return result
 
 
 def jacobian_point_addition_mixed(
-        point_p: Jacobian_Coordinate,
-        point_q: Jacobian_Coordinate) -> Jacobian_Coordinate:
+        jacobian_p: Jacobian_Coordinate,
+        jacobian_q: Jacobian_Coordinate) -> Jacobian_Coordinate:
     """
     Point addition (mixed) on the elliptic curve over Jacobian
     coordinate (x, y, z) and affine form in Jacobian coordinate
@@ -306,14 +309,14 @@ def jacobian_point_addition_mixed(
 
     It adds Point-P with Point-Q.
     """
-    assert is_on_curve_jacobian(point_p)
-    assert is_on_curve_jacobian(point_q)
-    assert is_affine_jacobian(point_q)
-    if is_infinite_jacobian(point_p):
-        result = point_q
+    assert is_on_curve_jacobian(jacobian_p)
+    assert is_on_curve_jacobian(jacobian_q)
+    assert is_affine_jacobian(jacobian_q)
+    if is_infinite_jacobian(jacobian_p):
+        result = jacobian_q
         return result
-    xp, yp, zp = point_p
-    xq, yq, _ = point_q
+    xp, yp, zp = jacobian_p
+    xq, yq, _ = jacobian_q
     zp_2 = pow(zp, 2, FP_CURVE)
     zp_3 = pow(zp, 3, FP_CURVE)
     uq = (xq * zp_2) % FP_CURVE
@@ -322,7 +325,7 @@ def jacobian_point_addition_mixed(
         result = POINT_INFINITY_JACOBIAN
         return result
     if xp == uq and yp == sq:
-        result = jacobian_point_doubling(point_p)
+        result = jacobian_point_doubling(jacobian_p)
         return result
     h = (uq - xp) % FP_CURVE
     r = (sq - yp) % FP_CURVE
@@ -332,36 +335,37 @@ def jacobian_point_addition_mixed(
     xr = (pow(r, 2, FP_CURVE) - h_3 - 2 * xp_h_2) % FP_CURVE
     yr = (r * (xp_h_2 - xr) - yp * h_3) % FP_CURVE
     zr = (h * zp) % FP_CURVE
-    result = (xr, yr, zr)
+    jacobian_r = (xr, yr, zr)
+    result = jacobian_r
     assert is_on_curve_jacobian(result)
     return result
 
 
 def jacobian_point_addition(
-        point_p: Jacobian_Coordinate,
-        point_q: Jacobian_Coordinate) -> Jacobian_Coordinate:
+        jacobian_p: Jacobian_Coordinate,
+        jacobian_q: Jacobian_Coordinate) -> Jacobian_Coordinate:
     """
     Point addition on the elliptic curve over Jacobian coordinate
     (x, y, z).
 
     It adds Point-P with Point-Q.
     """
-    assert is_on_curve_jacobian(point_p)
-    assert is_on_curve_jacobian(point_q)
-    if is_infinite_jacobian(point_p):
-        result = point_q
+    assert is_on_curve_jacobian(jacobian_p)
+    assert is_on_curve_jacobian(jacobian_q)
+    if is_infinite_jacobian(jacobian_p):
+        result = jacobian_q
         return result
-    if is_infinite_jacobian(point_q):
-        result = point_p
+    if is_infinite_jacobian(jacobian_q):
+        result = jacobian_p
         return result
-    if is_affine_jacobian(point_p):
-        result = jacobian_point_addition_mixed(point_q, point_p)
+    if is_affine_jacobian(jacobian_p):
+        result = jacobian_point_addition_mixed(jacobian_q, jacobian_p)
         return result
-    if is_affine_jacobian(point_q):
-        result = jacobian_point_addition_mixed(point_p, point_q)
+    if is_affine_jacobian(jacobian_q):
+        result = jacobian_point_addition_mixed(jacobian_p, jacobian_q)
         return result
-    xp, yp, zp = point_p
-    xq, yq, zq = point_q
+    xp, yp, zp = jacobian_p
+    xq, yq, zq = jacobian_q
     zp_2 = pow(zp, 2, FP_CURVE)
     zp_3 = pow(zp, 3, FP_CURVE)
     zq_2 = pow(zq, 2, FP_CURVE)
@@ -374,7 +378,7 @@ def jacobian_point_addition(
         result = POINT_INFINITY_JACOBIAN
         return result
     if up == uq and sp == sq:
-        result = jacobian_point_doubling(point_p)
+        result = jacobian_point_doubling(jacobian_p)
         return result
     h = (uq - up) % FP_CURVE
     r = (sq - sp) % FP_CURVE
@@ -384,7 +388,8 @@ def jacobian_point_addition(
     xr = (pow(r, 2, FP_CURVE) - h_3 - 2 * up_h_2) % FP_CURVE
     yr = (r * (up_h_2 - xr) - sp * h_3) % FP_CURVE
     zr = (h * zp * zq) % FP_CURVE
-    result = (xr, yr, zr)
+    jacobian_r = (xr, yr, zr)
+    result = jacobian_r
     assert is_on_curve_jacobian(result)
     return result
 
@@ -434,8 +439,8 @@ def fast_scalar_multiplication(scalar: int, point: Point) -> Point:
         current = jacobian_point_doubling(current)
         if scalar_binary[i] == "1":
             current = jacobian_point_addition(jacobian, current)
-    affine = from_jacobian(current)
-    result = affine
+    new_point = from_jacobian(current)
+    result = new_point
     assert is_on_curve(result)
     return result
 
