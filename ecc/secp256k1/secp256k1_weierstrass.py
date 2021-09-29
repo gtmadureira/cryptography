@@ -199,7 +199,8 @@ def ec_point_doubling(point_p: Point) -> Point:
              modular_inverse(2 * yp, FP_CURVE)) % FP_CURVE
     xr = (pow(slope, 2, FP_CURVE) - 2 * xp) % FP_CURVE
     yr = (slope * (xp - xr) - yp) % FP_CURVE
-    result = (xr, yr)
+    point_r = (xr, yr)
+    result = point_r
     assert is_on_curve(result)
     return result
 
@@ -229,7 +230,8 @@ def ec_point_addition(point_p: Point, point_q: Point) -> Point:
     slope = ((yq - yp) * modular_inverse(xq - xp, FP_CURVE)) % FP_CURVE
     xr = (pow(slope, 2, FP_CURVE) - xp - xq) % FP_CURVE
     yr = (slope * (xp - xr) - yp) % FP_CURVE
-    result = (xr, yr)
+    point_r = (xr, yr)
+    result = point_r
     assert is_on_curve(result)
     return result
 
@@ -253,7 +255,8 @@ def ec_point_multiplication(scalar: int, point: Point) -> Point:
         current = ec_point_doubling(current)
         if scalar_binary[i] == "1":
             current = ec_point_addition(point, current)
-    result = current
+    new_point = current
+    result = new_point
     assert is_on_curve(result)
     return result
 
