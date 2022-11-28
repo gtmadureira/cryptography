@@ -26,19 +26,27 @@ SECP256K1, using the Jacobian form.
 
 Works on Python 3.8 or higher.
 
+
     Source:
 
             https://github.com/gtmadureira/cryptography/blob/main/ecc/secp256k1/secp256k1_ecdsa.py
+
 
     Author:
 
             • Gustavo Madureira (gtmadureira@gmail.com)
             • https://gtmadureira.github.io/
+
+
+    Author Nickname:
+
+            • Hattoshi Hanzōmoto (hanzomoto_hattoshi@protonmail.com)
 """
 
 
 from random import randrange
 from typing import Final, Tuple
+from colorama import just_fix_windows_console  # type: ignore
 from secp256k1_jacobian import GENERATOR_POINT_CURVE, N_CURVE, \
     modular_inverse, fast_point_addition, fast_scalar_multiplication
 
@@ -46,6 +54,10 @@ from secp256k1_jacobian import GENERATOR_POINT_CURVE, N_CURVE, \
 # Type Hints.
 Point = Tuple[int, int]
 Signature = Tuple[int, int]
+
+
+# Get ANSI escapes from color scheme to work on Windows.
+just_fix_windows_console()
 
 
 # Generator point and curve order.
@@ -57,34 +69,34 @@ def ecdsa_signature(private_key: int, message_hash: bytes) -> Signature:
     """This creates the message ECDSA-Signature."""
     data_hash = int.from_bytes(message_hash, byteorder="big")
     random_number = randrange(1, N)
-    dA = private_key
-    z = data_hash
-    k = random_number
-    xp, _ = fast_scalar_multiplication(k, G)
-    r = xp % N
-    s = (modular_inverse(k, N) * (z + r * dA)) % N
-    result = (r, s)
+    _da = private_key
+    _z = data_hash
+    _k = random_number
+    _xp, _ = fast_scalar_multiplication(_k, G)
+    _r = _xp % N
+    _s = (modular_inverse(_k, N) * (_z + _r * _da)) % N
+    result = (_r, _s)
     return result
 
 
-def ecdsa_verification(public_key: Point,
-                       message_hash: bytes, signature: Signature) -> bool:
+def ecdsa_verification(
+        public_key: Point, message_hash: bytes, signature: Signature) -> bool:
     """This verifies the message ECDSA-Signature."""
     result = False
     data_hash = int.from_bytes(message_hash, byteorder="big")
-    QA = public_key
-    z = data_hash
-    r, s = signature
-    if not 0 < r < N or not 0 < s < N:
+    _qa = public_key
+    _z = data_hash
+    _r, _s = signature
+    if not 0 < _r < N or not 0 < _s < N:
         result = False
         return result
-    w = modular_inverse(s, N)
-    sb = (z * w) % N
-    sd = (r * w) % N
-    p = fast_scalar_multiplication(sb, G)
-    q = fast_scalar_multiplication(sd, QA)
-    xr, _ = fast_point_addition(p, q)
-    if r % N == xr % N:
+    _w = modular_inverse(_s, N)
+    _sb = (_z * _w) % N
+    _sd = (_r * _w) % N
+    _p = fast_scalar_multiplication(_sb, G)
+    _q = fast_scalar_multiplication(_sd, _qa)
+    _xr, _ = fast_point_addition(_p, _q)
+    if _r % N == _xr % N:
         result = True
         return result
     return result
@@ -94,57 +106,60 @@ if __name__ == "__main__":
 
     # ECDSA-Signature test.
     from hashlib import sha256
-    from secp256k1_jacobian import x, y
+    from secp256k1_jacobian import x_coordinate, y_coordinate
 
     def hasher_double_sha256(data: bytes) -> bytes:
         """Get double hash through SHA-256."""
         result = sha256(sha256(data).digest()).digest()
         return result
 
-    private_key = \
+    PRIVATE_KEY = \
         0xE05AF5BC208C749190567B921A0C28FE112CD8B54E9FF82F77FA58998B694D4C
 
-    public_key = fast_scalar_multiplication(private_key, G)
+    PUBLIC_KEY = fast_scalar_multiplication(PRIVATE_KEY, G)
 
-    message = b"My name is Gustavo Madureira. This is a ECDSA-Signature test."
+    MESSAGE = b"My name is Gustavo Madureira. This is a ECDSA-Signature test."
 
-    message_hash = hasher_double_sha256(message)
-    signature = ecdsa_signature(private_key, message_hash)
-    signature_verification = ecdsa_verification(
-        public_key, message_hash, signature)
+    MESSAGE_HASH = hasher_double_sha256(MESSAGE)
+    SIGNATURE = ecdsa_signature(PRIVATE_KEY, MESSAGE_HASH)
+    SIGNATURE_VERIFICATION = ecdsa_verification(
+        PUBLIC_KEY, MESSAGE_HASH, SIGNATURE)
 
-    if signature_verification:
-        signature_result = "\033[92m[✔] Good signature\033[0m"
+    if SIGNATURE_VERIFICATION:
+        SIGNATURE_RESULT = "\033[92m[✔] Good signature\033[0m"
     else:
-        signature_result = "\033[95m[X] Bad signature\033[0m"
+        SIGNATURE_RESULT = "\033[95m[X] Bad signature\033[0m"
 
-    data = (hex(private_key)[2:].zfill(64).upper(),
-            hex(x(public_key))[2:].zfill(64).upper(),
-            hex(y(public_key))[2:].zfill(64).upper(),
-            message.decode(),
-            message_hash.hex().upper(),
-            hex(signature[0])[2:].zfill(64).upper(),
-            hex(signature[1])[2:].zfill(64).upper(),
-            signature_result)
+    DATA = (hex(PRIVATE_KEY)[2:].zfill(64).upper(),
+            hex(x_coordinate(PUBLIC_KEY))[2:].zfill(64).upper(),
+            hex(y_coordinate(PUBLIC_KEY))[2:].zfill(64).upper(),
+            MESSAGE.decode(),
+            MESSAGE_HASH.hex().upper(),
+            hex(SIGNATURE[0])[2:].zfill(64).upper(),
+            hex(SIGNATURE[1])[2:].zfill(64).upper(),
+            SIGNATURE_RESULT)
 
     print(f"""\033[92m
         SECP256K1 ECDSA-Signature  Copyright (C) 2021  Gustavo Madureira
+        License GNU GPL-3.0-or-later <https://gnu.org/licenses/gpl.html>
         This program comes with ABSOLUTELY NO WARRANTY.
         This is free software, and you are welcome to redistribute it
-        under certain conditions.\033[0m
+        under certain conditions.
+
+        \33[1;7m *** FOR EDUCATIONAL PURPOSES ONLY *** \033[0m
 
 
-           Private Key: {data[0]}
+           Private Key: {DATA[0]}
 
-            Public Key: X = {data[1]}
-                        Y = {data[2]}
+            Public Key: X = {DATA[1]}
+                        Y = {DATA[2]}
 
-               Message: {data[3]}
+               Message: {DATA[3]}
 
-          Message Hash: {data[4]}
+          Message Hash: {DATA[4]}
 
-             Signature: R = {data[5]}
-                        S = {data[6]}
+             Signature: R = {DATA[5]}
+                        S = {DATA[6]}
 
-Signature Verification: {data[7]}
+Signature Verification: {DATA[7]}
 """)
