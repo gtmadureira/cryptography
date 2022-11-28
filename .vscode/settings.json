@@ -1,21 +1,20 @@
-{   
-    "codesnap.realLineNumbers": false,
-    "codesnap.backgroundColor": "#282a36",
-    "codesnap.showWindowControls": false,
+{
     "editor.wordWrap": "on",
     "editor.rulers": [72, 79],
     "cSpell.enabled": false,
     "cSpell.language": "en-US",
     "python.linting.flake8Enabled": true,
     "python.linting.pylintEnabled": true,
+    "python.linting.pylamaEnabled": true,
     "python.linting.mypyEnabled": true,
     "python.linting.enabled": true,    
     "python.testing.unittestEnabled": false,
     "[python]": {
         "editor.formatOnSave": true    
     },
+    "python.analysis.typeCheckingMode": "basic",
     "code-runner.executorMap": {
-        "python": "/usr/bin/python3",
+        "python": "./venv/bin/python3",
         
     }
 }
