@@ -168,7 +168,7 @@ def y_coordinate(point: Point) -> int:
 
 def has_even_y(point: Point) -> bool:
     """
-    Where point is not at infinity, it returns True if {_yp mod 2 == 0},
+    Where point is not at infinity, it returns True if {_yp % 2 == 0},
     otherwise it returns False.
     """
     assert not is_infinite(point)
@@ -272,6 +272,8 @@ def jacobian_point_doubling(
     (x, y, z).
 
     It doubles Point-P.
+
+    - Point-P is defined as Jacobian-P.
     """
     assert is_on_curve_jacobian(jacobian_p)
     if is_infinite_jacobian(jacobian_p):
@@ -307,6 +309,9 @@ def jacobian_point_addition_mixed(  # pylint: disable=R0914
     (x, y, 1).
 
     It adds Point-P with Point-Q.
+
+    - Point-P is defined as Jacobian-P and Point-Q is defined as
+      Jacobian-Q.
     """
     assert is_on_curve_jacobian(jacobian_p)
     assert is_on_curve_jacobian(jacobian_q)
@@ -352,6 +357,9 @@ def jacobian_point_addition(  # pylint: disable=R0914, R0911
     (x, y, z).
 
     It adds Point-P with Point-Q.
+
+    - Point-P is defined as Jacobian-P and Point-Q is defined as
+      Jacobian-Q.
     """
     assert is_on_curve_jacobian(jacobian_p)
     assert is_on_curve_jacobian(jacobian_q)
@@ -437,6 +445,9 @@ def fast_scalar_multiplication(scalar: int, point: Point) -> Point:
     affine (x, y) to Jacobian coordinate (x, y, z).
 
     It doubles Point-P and adds Point-P with Point-Q.
+
+    - Point-P is defined as Jacobian and Point-Q is defined as
+      Current.
     """
     assert is_on_curve(point)
     if scalar == 0 or scalar == N_CURVE or is_infinite(point):
