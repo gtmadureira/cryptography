@@ -501,7 +501,7 @@ if __name__ == "__main__":
 
     start = perf_counter()
     ELAPSED = 0.0
-    while ELAPSED < 900.0:
+    while ELAPSED < 60.0:
         private_key = randrange(1, N_CURVE)
         public_key = fast_scalar_multiplication(
             private_key, GENERATOR_POINT_CURVE)

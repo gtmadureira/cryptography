@@ -46,7 +46,6 @@ Works on Python 3.8 or higher.
 
 from random import randrange
 from typing import Final, Tuple
-from colorama import just_fix_windows_console  # type: ignore
 from secp256k1_jacobian import GENERATOR_POINT_CURVE, N_CURVE, \
     modular_inverse, fast_point_addition, fast_scalar_multiplication
 
@@ -54,10 +53,6 @@ from secp256k1_jacobian import GENERATOR_POINT_CURVE, N_CURVE, \
 # Type Hints.
 Point = Tuple[int, int]
 Signature = Tuple[int, int]
-
-
-# Get ANSI escapes from color scheme to work on Windows.
-just_fix_windows_console()
 
 
 # Generator point and curve order.
@@ -107,6 +102,10 @@ if __name__ == "__main__":
     # ECDSA-Signature test.
     from hashlib import sha256
     from secp256k1_jacobian import x_coordinate, y_coordinate
+    from colorama import just_fix_windows_console  # type: ignore
+
+    # Get ANSI escapes from color scheme to work on Windows.
+    just_fix_windows_console()
 
     def hasher_double_sha256(data: bytes) -> bytes:
         """Get double hash through SHA-256."""
