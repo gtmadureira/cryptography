@@ -162,7 +162,7 @@ def y_coordinate(point: Point) -> int:
 
 def has_even_y(point: Point) -> bool:
     """
-    Where point is not at infinity, it returns True if {_yp mod 2 == 0},
+    Where point is not at infinity, it returns True if {_yp % 2 == 0},
     otherwise it returns False.
     """
     assert not is_infinite(point)
@@ -236,6 +236,9 @@ def ec_point_multiplication(scalar: int, point: Point) -> Point:
     Scalar multiplication of point on the elliptic curve.
 
     It doubles Point-P and adds Point-P with Point-Q.
+
+    - Point-P is defined as Point and Point-Q is defined as
+      Current.
     """
     assert is_on_curve(point)
     if scalar == 0 or scalar == N_CURVE or is_infinite(point):
