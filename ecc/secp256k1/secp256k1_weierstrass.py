@@ -56,6 +56,7 @@ from typing import Final, Tuple
 
 # Type Hints.
 Point = Tuple[int, int]
+ScalarBinary = Tuple[str, ...]
 
 
 #       Mathematical domain parameters of the elliptic curve SECP256K1.
@@ -67,8 +68,8 @@ FP_CURVE: Final[int] = \
     0xFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFEFFFFFC2F
 
 
-# The elliptic curve (y^2 = x^3 + ax + b) over (Fp) is defined by the
-# coefficients:
+# The elliptic curve in short Weierstrass form ( y² == x³ + a⋅x + b )
+# over (Fp) is defined by the coefficients:
 A_CURVE: Final[int] = \
     0x0000000000000000000000000000000000000000000000000000000000000000
 
@@ -107,7 +108,7 @@ def modular_inverse(_k: int, _p: int) -> int:
     if _k % _p == 0:
         result = None
         return result  # type: ignore
-    _x = pow(_k, _p - 2, _p)
+    _x = pow(_k, - 1, _p)
     assert (_k * _x) % _p == 1
     result = _x
     return result
@@ -115,7 +116,7 @@ def modular_inverse(_k: int, _p: int) -> int:
 
 def is_infinite(point: Point) -> bool:
     """
-    Returns True if the point at infinity on the elliptic curve,
+    Returns True if the point is at infinity on the elliptic curve,
     otherwise it returns False.
     """
     result = point == POINT_INFINITY_CURVE or 0 in point
@@ -162,8 +163,9 @@ def y_coordinate(point: Point) -> int:
 
 def has_even_y(point: Point) -> bool:
     """
-    Where point is not at infinity, it returns True if {_yp % 2 == 0},
-    otherwise it returns False.
+    Where the point is not at infinity, it returns True so that the
+    y-coordinate is an even value if {_yp % 2 == 0}, otherwise it
+    returns False.
     """
     assert not is_infinite(point)
     assert is_on_curve(point)
@@ -238,10 +240,10 @@ def ec_point_multiplication(scalar: int, point: Point) -> Point:
     It doubles Point-P and adds Point-P with Point-Q.
 
     - Point-P is defined as Point and Point-Q is defined as
-      Current.
+    Current.
     """
     assert is_on_curve(point)
-    if scalar == 0 or scalar == N_CURVE or is_infinite(point):
+    if scalar in (0, N_CURVE) or is_infinite(point):
         new_point = POINT_INFINITY_CURVE
         result = new_point
         assert is_on_curve(result)
@@ -253,12 +255,26 @@ def ec_point_multiplication(scalar: int, point: Point) -> Point:
         new_point = ec_point_multiplication(scalar % N_CURVE, point)
         result = new_point
         return result
-    scalar_binary = bin(scalar)[2:]
+
+    # *  -> The next variable below, will be assigned from the convert
+    # *     the scalar (represented as an integer) to string objects as
+    # *     bits ("0" or "1"), and store them inside a
+    # *     Tuple["1", "0", "0", "1", ...].
+    # *  -> We guarantee, as a warning in the code, that it will be
+    # *     declared as Final and cannot be reassigned.
+    scalar_bits: Final[ScalarBinary] = tuple(bin(scalar)[2:])
+
     current = point
-    for i in range(1, len(scalar_binary)):
+
+    # *  -> For-Loop below, working from left-to-right.
+    # *  -> "AND IGNORING" the Most Significant Bit (MSB) from incoming
+    # *     scalar. This is usually the bit farthest to the left, or the
+    # *     bit transmitted first in a sequence.
+    for bit in scalar_bits[1:]:
         current = ec_point_doubling(current)
-        if scalar_binary[i] == "1":
-            current = ec_point_addition(point, current)
+        if bit == "1":
+            current = ec_point_addition(current, point)
+
     new_point = current
     result = new_point
     assert is_on_curve(result)
@@ -267,60 +283,80 @@ def ec_point_multiplication(scalar: int, point: Point) -> Point:
 
 if __name__ == "__main__":
 
-    # Elliptic curve scalar multiplication test.
-    from random import randrange
-    from time import perf_counter
-    from colorama import just_fix_windows_console  # type: ignore
-    from os import name as system_type, system as run_command
+    try:
+        # Non-Singularity test ( 4⋅a³ + 27⋅b² != 0 ) for the elliptic
+        # curve.
+        assert (4 * pow(A_CURVE, 3, FP_CURVE) + 27 *
+                pow(B_CURVE, 2, FP_CURVE)) % FP_CURVE != 0
 
-    # Define clear_screen function.
-    def clear_screen() -> None:
-        """
-        Tests the operating system type and sets the screen clear command.
-        """
-        # Screen clear command for Windows operating system.
-        if system_type == "nt":
-            _ = run_command("cls")
+        # Elliptic curve scalar multiplication test.
+        from os import name as system_type, system as run_command
+        from time import perf_counter
+        from random import randrange
+        from colorama import just_fix_windows_console  # type: ignore
 
-        # Screen clear command for macOS/Linux operating system.
-        elif system_type == "posix":
-            _ = run_command("clear")
+        # Define clear_screen function.
+        def clear_screen() -> None:
+            """
+            Tests the operating system type and sets the screen clear
+            command.
+            """
+            # Screen clear command for Windows operating system.
+            if system_type == "nt":
+                _ = run_command("cls")
+            # Screen clear command for macOS/Linux operating system.
+            elif system_type == "posix":
+                _ = run_command("clear")
 
-    # Get ANSI escapes from color scheme to work on Windows.
-    just_fix_windows_console()
+        # Get ANSI escapes from color scheme to work on Windows
+        # operating system.
+        just_fix_windows_console()
 
-    start = perf_counter()
-    ELAPSED = 0.0
-    while ELAPSED < 60.0:
-        private_key = randrange(1, N_CURVE)
-        public_key = ec_point_multiplication(
-            private_key, GENERATOR_POINT_CURVE)
-        if has_even_y(public_key):
-            PREFIX = "02"
-        else:
-            PREFIX = "03"
-        data = (str(private_key),
-                hex(private_key)[2:].zfill(64).upper(),
-                hex(x_coordinate(public_key))[2:].zfill(64).upper(),
-                hex(y_coordinate(public_key))[2:].zfill(64).upper(),
-                PREFIX)
-        clear_screen()
-        ELAPSED = perf_counter() - start
-        print(f"""\033[92m
-         SECP256K1 at Weierstrass Form  Copyright (C) 2021  Gustavo Madureira
-         License GNU GPL-3.0-or-later <https://gnu.org/licenses/gpl.html>
-         This program comes with ABSOLUTELY NO WARRANTY.
-         This is free software, and you are welcome to redistribute it
-         under certain conditions.
+        start = perf_counter()
+        ELAPSED = 0.0
+        COUNTER = 1
+        while ELAPSED < 12.0:
+            private_key = randrange(1, N_CURVE)
+            public_key = ec_point_multiplication(
+                private_key, GENERATOR_POINT_CURVE)
+            if has_even_y(public_key):
+                PREFIX = "02"
+            else:
+                PREFIX = "03"
+            data = (str(private_key),
+                    hex(private_key)[2:].zfill(64).upper(),
+                    hex(x_coordinate(public_key))[2:].zfill(64).upper(),
+                    hex(y_coordinate(public_key))[2:].zfill(64).upper(),
+                    PREFIX)
+            clear_screen()
+            ELAPSED = perf_counter() - start
+            print(f"""\033[92m
+           SECP256K1 at Weierstrass Form  Copyright (C) 2021  Gustavo Madureira
+           License GNU GPL-3.0-or-later <https://gnu.org/licenses/gpl.html>
+           This program comes with ABSOLUTELY NO WARRANTY.
+           This is free software, and you are welcome to redistribute it
+           under certain conditions.
 
-         \33[1;7m *** FOR EDUCATIONAL PURPOSES ONLY *** \033[0m
+           \33[1;7m *** FOR EDUCATIONAL PURPOSES ONLY *** \033[0m
 
 
-            \033[92mPoint Number: {data[0]}
-             Private Key: {data[1]}
- Uncompressed Public Key: 04{data[2]}
-                            {data[3]}
-   Compressed Public Key: {data[4]}{data[2]}
+              \033[92mPoint Number: {data[0]}
+               Private Key: {data[1]}
+   Uncompressed Public Key: 04{data[2]}
+                              {data[3]}
+     Compressed Public Key: {data[4]}{data[2]}
 
-            Elapsed time: {ELAPSED:.02f} seconds.
+              Elapsed Time: {ELAPSED:.02f} seconds.
+  Number of Points Created: {COUNTER} points.
+\033[0m""")
+            COUNTER += 1
+    except Exception:  # pylint: disable=W0703
+        print("""\033[91m\33[1;7m
+[-----------------------------------------------------------------------------]
+[     *** Something bad happened and the program had to be shut down ***      ]
+[                                                                             ]
+[  Possible Errors:                                                           ]
+[                                                                             ]
+[ [X] Mathematical domain parameters of the elliptic curve may be incorrect ! ]
+[-----------------------------------------------------------------------------]
 \033[0m""")

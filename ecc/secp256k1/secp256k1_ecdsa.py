@@ -104,31 +104,27 @@ if __name__ == "__main__":
     from secp256k1_jacobian import x_coordinate, y_coordinate
     from colorama import just_fix_windows_console  # type: ignore
 
-    # Get ANSI escapes from color scheme to work on Windows.
+    # Get ANSI escapes from color scheme to work on Windows operating
+    # system.
     just_fix_windows_console()
 
     def hasher_double_sha256(data: bytes) -> bytes:
         """Get double hash through SHA-256."""
-        result = sha256(sha256(data).digest()).digest()
+        result = sha256(data).digest()
         return result
 
     PRIVATE_KEY = \
         0xE05AF5BC208C749190567B921A0C28FE112CD8B54E9FF82F77FA58998B694D4C
-
     PUBLIC_KEY = fast_scalar_multiplication(PRIVATE_KEY, G)
-
     MESSAGE = b"My name is Gustavo Madureira. This is a ECDSA-Signature test."
-
     MESSAGE_HASH = hasher_double_sha256(MESSAGE)
     SIGNATURE = ecdsa_signature(PRIVATE_KEY, MESSAGE_HASH)
     SIGNATURE_VERIFICATION = ecdsa_verification(
         PUBLIC_KEY, MESSAGE_HASH, SIGNATURE)
-
     if SIGNATURE_VERIFICATION:
         SIGNATURE_RESULT = "\033[92m[✔] Good signature\033[0m"
     else:
         SIGNATURE_RESULT = "\033[95m[X] Bad signature\033[0m"
-
     DATA = (hex(PRIVATE_KEY)[2:].zfill(64).upper(),
             hex(x_coordinate(PUBLIC_KEY))[2:].zfill(64).upper(),
             hex(y_coordinate(PUBLIC_KEY))[2:].zfill(64).upper(),
@@ -137,28 +133,27 @@ if __name__ == "__main__":
             hex(SIGNATURE[0])[2:].zfill(64).upper(),
             hex(SIGNATURE[1])[2:].zfill(64).upper(),
             SIGNATURE_RESULT)
-
     print(f"""\033[92m
-        SECP256K1 ECDSA-Signature  Copyright (C) 2021  Gustavo Madureira
-        License GNU GPL-3.0-or-later <https://gnu.org/licenses/gpl.html>
-        This program comes with ABSOLUTELY NO WARRANTY.
-        This is free software, and you are welcome to redistribute it
-        under certain conditions.
+            SECP256K1 ECDSA-Signature  Copyright (C) 2021  Gustavo Madureira
+            License GNU GPL-3.0-or-later <https://gnu.org/licenses/gpl.html>
+            This program comes with ABSOLUTELY NO WARRANTY.
+            This is free software, and you are welcome to redistribute it
+            under certain conditions.
 
-        \33[1;7m *** FOR EDUCATIONAL PURPOSES ONLY *** \033[0m
+            \33[1;7m *** FOR EDUCATIONAL PURPOSES ONLY *** \033[0m
 
 
-           Private Key: {DATA[0]}
+                Private Key: {DATA[0]}
 
-            Public Key: X = {DATA[1]}
-                        Y = {DATA[2]}
+                 Public Key: X = {DATA[1]}
+                             Y = {DATA[2]}
 
-               Message: {DATA[3]}
+                    Message: {DATA[3]}
 
-          Message Hash: {DATA[4]}
+               Message Hash: {DATA[4]}
 
-             Signature: R = {DATA[5]}
-                        S = {DATA[6]}
+                  Signature: R = {DATA[5]}
+                             S = {DATA[6]}
 
-Signature Verification: {DATA[7]}
+     Signature Verification: {DATA[7]}
 """)
