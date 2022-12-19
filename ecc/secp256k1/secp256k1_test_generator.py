@@ -1,15 +1,18 @@
 # pylint: disable=C0114
 
 
+# For educational purposes only.
+
+
 # Works on Python 3.8 or higher.
 
 
 from typing import Final, Tuple
-from colorama import just_fix_windows_console  # type: ignore
-from secp256k1_jacobian import fast_scalar_multiplication
-from secp256k1_weierstrass import GENERATOR_POINT_CURVE, has_even_y, \
-    ec_point_multiplication
 
+from colorama import just_fix_windows_console
+from secp256k1_jacobian import fast_scalar_multiplication
+from secp256k1_weierstrass import (GENERATOR_POINT_CURVE,
+                                   ec_point_multiplication, has_even_y)
 
 Point = Tuple[int, int]
 
