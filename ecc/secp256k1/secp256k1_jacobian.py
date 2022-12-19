@@ -31,6 +31,8 @@ the Jacobian form.
 
 (Curve used in cryptocurrencies such as Bitcoin, Ethereum, etc...)
 
+For educational purposes only.
+
 Works on Python 3.8 or higher.
 
 
@@ -52,7 +54,6 @@ Works on Python 3.8 or higher.
 
 
 from typing import Final, Tuple
-
 
 # Type Hints.
 Point = Tuple[int, int]
@@ -125,7 +126,8 @@ def is_infinite(point: Point) -> bool:
     Returns True if the point is at infinity on the elliptic curve,
     otherwise it returns False.
     """
-    result = point == POINT_INFINITY_CURVE or 0 in point
+    _xp, _ = point
+    result = point == POINT_INFINITY_CURVE or _xp == 0
     return result
 
 
@@ -185,8 +187,9 @@ def is_infinite_jacobian(jacobian: JacobianCoordinate) -> bool:
     Returns True if the point is at infinity on the elliptic curve over
     Jacobian coordinate, otherwise it returns False.
     """
-    _, _, _zp = jacobian
-    result = jacobian == POINT_INFINITY_JACOBIAN or _zp == 0
+    _xp, _yp, _zp = jacobian
+    result = jacobian == POINT_INFINITY_JACOBIAN or _zp == 0 and 0 not in (
+        _xp, _yp)
     return result
 
 
@@ -425,6 +428,7 @@ def jacobian_point_addition_mixed(  # pylint: disable=R0914
     """
     assert is_on_curve_jacobian(jacobian_p)
     assert is_on_curve_jacobian(jacobian_q)
+    assert not is_affine_jacobian(jacobian_p)
     assert is_affine_jacobian(jacobian_q)
     _xp, _yp, _zp = jacobian_p
     _xq, _yq, _ = jacobian_q
@@ -455,7 +459,7 @@ def jacobian_point_addition_mixed(  # pylint: disable=R0914
     return result
 
 
-def jacobian_point_addition(  # pylint: disable=R0914, R0911
+def jacobian_point_addition(  # pylint: disable=R0911, R0914, R0915
         jacobian_p: JacobianCoordinate,
         jacobian_q: JacobianCoordinate) -> JacobianCoordinate:
     """
@@ -469,6 +473,11 @@ def jacobian_point_addition(  # pylint: disable=R0914, R0911
     """
     assert is_on_curve_jacobian(jacobian_p)
     assert is_on_curve_jacobian(jacobian_q)
+    if is_infinite_jacobian(jacobian_p) and is_infinite_jacobian(jacobian_q):
+        jacobian_r = POINT_INFINITY_JACOBIAN
+        result = jacobian_r
+        assert is_on_curve_jacobian(result)
+        return result
     if is_infinite_jacobian(jacobian_p):
         jacobian_r = jacobian_q
         result = jacobian_r
@@ -538,6 +547,11 @@ def fast_point_addition(point_p: Point, point_q: Point) -> Point:
     """
     assert is_on_curve(point_p)
     assert is_on_curve(point_q)
+    if is_infinite(point_p) and is_infinite(point_q):
+        point_r = POINT_INFINITY_CURVE
+        result = point_r
+        assert is_on_curve(result)
+        return result
     if is_infinite(point_p):
         point_r = point_q
         result = point_r
@@ -548,7 +562,7 @@ def fast_point_addition(point_p: Point, point_q: Point) -> Point:
         return result
     jacobian_p = to_jacobian(point_p)
     jacobian_q = to_jacobian(point_q)
-    jacobian_r = jacobian_point_addition(jacobian_p, jacobian_q)
+    jacobian_r = jacobian_point_addition_affined_only(jacobian_p, jacobian_q)
     point_r = from_jacobian(jacobian_r)
     result = point_r
     assert is_on_curve(result)
@@ -565,6 +579,8 @@ def fast_scalar_multiplication(scalar: int, point: Point) -> Point:
     - Point is defined as Jacobian and Current is defined as
     New-Point.
     """
+    # *     [ SCALAR VERIFICATION ]
+
     assert is_on_curve(point)
     if scalar in (0, N_CURVE) or is_infinite(point):
         new_point = POINT_INFINITY_CURVE
@@ -579,6 +595,8 @@ def fast_scalar_multiplication(scalar: int, point: Point) -> Point:
         result = new_point
         return result
 
+    # *     [ SCALAR PREPARATION ]
+
     # *  -> The next variable below, will be assigned from the convert
     # *     the scalar (represented as an integer) to string objects as
     # *     bits ("0" or "1"), and store them inside a
@@ -589,6 +607,8 @@ def fast_scalar_multiplication(scalar: int, point: Point) -> Point:
 
     jacobian = to_jacobian(point)
     current = jacobian
+
+    # *     [ SCALAR MULTIPLICATION ]
 
     # *  -> For-Loop below, working from left-to-right.
     # *  -> "AND IGNORING" the Most Significant Bit (MSB) from incoming
@@ -613,11 +633,16 @@ if __name__ == "__main__":
         assert (4 * pow(A_CURVE, 3, FP_CURVE) + 27 *
                 pow(B_CURVE, 2, FP_CURVE)) % FP_CURVE != 0
 
+        # Tests if the generator point lies on the elliptic curve.
+        assert is_on_curve(GENERATOR_POINT_CURVE)
+
         # Elliptic curve scalar multiplication test.
-        from os import name as system_type, system as run_command
-        from time import perf_counter
+        from os import name as system_type
+        from os import system as run_command
         from random import randrange
-        from colorama import just_fix_windows_console  # type: ignore
+        from time import perf_counter
+
+        from colorama import just_fix_windows_console
 
         # Define clear_screen function.
         def clear_screen() -> None:
@@ -661,7 +686,7 @@ if __name__ == "__main__":
             This is free software, and you are welcome to redistribute it
             under certain conditions.
 
-            \33[1;7m *** FOR EDUCATIONAL PURPOSES ONLY *** \033[0m
+            \33[1;7m[ *** FOR EDUCATIONAL PURPOSES ONLY *** ]\033[0m
 
 
                \033[92mPoint Number: {data[0]}

@@ -24,6 +24,8 @@ Elliptic Curve Cryptography (ECC).
 Module to creates and verifies ECDSA-Signature with elliptic curve
 SECP256K1, using the Jacobian form.
 
+For educational purposes only.
+
 Works on Python 3.8 or higher.
 
 
@@ -46,9 +48,10 @@ Works on Python 3.8 or higher.
 
 from random import randrange
 from typing import Final, Tuple
-from secp256k1_jacobian import GENERATOR_POINT_CURVE, N_CURVE, \
-    modular_inverse, fast_point_addition, fast_scalar_multiplication
 
+from secp256k1_jacobian import (GENERATOR_POINT_CURVE, N_CURVE,
+                                fast_point_addition,
+                                fast_scalar_multiplication, modular_inverse)
 
 # Type Hints.
 Point = Tuple[int, int]
@@ -101,8 +104,10 @@ if __name__ == "__main__":
 
     # ECDSA-Signature test.
     from hashlib import sha256
-    from secp256k1_jacobian import x_coordinate, y_coordinate
-    from colorama import just_fix_windows_console  # type: ignore
+
+    from colorama import just_fix_windows_console
+    from secp256k1_jacobian import x_coordinate  # pylint: disable=C0412
+    from secp256k1_jacobian import y_coordinate
 
     # Get ANSI escapes from color scheme to work on Windows operating
     # system.
@@ -140,7 +145,7 @@ if __name__ == "__main__":
             This is free software, and you are welcome to redistribute it
             under certain conditions.
 
-            \33[1;7m *** FOR EDUCATIONAL PURPOSES ONLY *** \033[0m
+            \33[1;7m[ *** FOR EDUCATIONAL PURPOSES ONLY *** ]\033[0m
 
 
                 Private Key: {DATA[0]}
