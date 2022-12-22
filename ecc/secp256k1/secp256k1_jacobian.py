@@ -94,7 +94,7 @@ H_CURVE: Final[int] = \
 
 
 # The point that points to infinity on the elliptic curve is defined by:
-POINT_INFINITY_CURVE: Final[Point] = (0, 0)
+POINT_INFINITY_CURVE: Final[Point] = (0, 0) if B_CURVE != 0 else (0, 1)
 
 
 # The point that points to infinity on the elliptic curve over Jacobian
@@ -126,8 +126,8 @@ def is_infinite(point: Point) -> bool:
     Returns True if the point is at infinity on the elliptic curve,
     otherwise it returns False.
     """
-    _xp, _ = point
-    result = point == POINT_INFINITY_CURVE or _xp == 0
+    _xp, _yp = point
+    result = point == POINT_INFINITY_CURVE or _xp == 0 and _yp != 0
     return result
 
 
@@ -630,8 +630,8 @@ if __name__ == "__main__":
     try:
         # Non-Singularity test ( 4⋅a³ + 27⋅b² != 0 ) for the elliptic
         # curve.
-        assert (4 * pow(A_CURVE, 3, FP_CURVE) + 27 *
-                pow(B_CURVE, 2, FP_CURVE)) % FP_CURVE != 0
+        assert (- 16 * (4 * pow(A_CURVE, 3, FP_CURVE) +
+                        27 * pow(B_CURVE, 2, FP_CURVE))) % FP_CURVE != 0
 
         # Tests if the generator point lies on the elliptic curve.
         assert is_on_curve(GENERATOR_POINT_CURVE)
