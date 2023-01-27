@@ -299,8 +299,8 @@ if __name__ == "__main__":
     try:
         # Non-Singularity test ( 4⋅a³ + 27⋅b² != 0 ) for the elliptic
         # curve.
-        assert (- 16 * (4 * pow(A_CURVE, 3, FP_CURVE) +
-                        27 * pow(B_CURVE, 2, FP_CURVE))) % FP_CURVE != 0
+        assert (- 16 * (4 * pow(A_CURVE, 3, FP_CURVE) + 27 *
+                pow(B_CURVE, 2, FP_CURVE))) % FP_CURVE != 0 % FP_CURVE
 
         # Tests if the generator point lies on the elliptic curve.
         assert is_on_curve(GENERATOR_POINT_CURVE)
