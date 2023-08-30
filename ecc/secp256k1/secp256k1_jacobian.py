@@ -114,7 +114,7 @@ def hex_from_int(_x: int, output_length_bytes: int) -> str:
 # *****************************************************************************
 # *                                                                           *
 # *      Mathematical Domain Parameters of the Elliptic Curve SECP256K1,      *
-# *      over Finite Field (Fp).                                              *
+# *      over a Finite Field (Fp).                                            *
 # *                                                                           *
 # *      Source:   https://www.secg.org/sec2-v2.pdf                           *
 # *                                                                           *
