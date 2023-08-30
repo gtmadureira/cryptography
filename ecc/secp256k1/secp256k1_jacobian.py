@@ -73,7 +73,7 @@ ScalarBinary = Tuple[str, ...]
 # *****************************************************************************
 
 
-def is_bin(_bin: str) -> bool:
+def is_bin_encoded(_bin: str) -> bool:
     """Checks if the input string is an encoded binary value."""
     assert isinstance(_bin, str)
     try:
@@ -85,7 +85,7 @@ def is_bin(_bin: str) -> bool:
     return result
 
 
-def is_hex(_hex: str) -> bool:
+def is_hex_encoded(_hex: str) -> bool:
     """Checks if the input string is an encoded hexadecimal value."""
     assert isinstance(_hex, str)
     try:
@@ -102,7 +102,7 @@ def hex_from_int(_x: int, output_length_bytes: int) -> str:
     assert isinstance(_x and output_length_bytes, int)
     result = hex(_x)[2:].zfill(output_length_bytes * 2)
     assert (isinstance(result, str) and
-            is_hex(result))
+            is_hex_encoded(result))
     return result
 
 
@@ -130,7 +130,7 @@ FP_CURVE: Final[int] = \
     0xFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFEFFFFFC2F
 
 assert (isinstance(FP_CURVE, int) and
-        is_hex(hex_from_int(FP_CURVE, 32)))
+        is_hex_encoded(hex_from_int(FP_CURVE, 32)))
 
 
 # The Elliptic Curve in short Weierstrass form ( y² = x³ + a⋅x + b )
@@ -142,8 +142,8 @@ B_CURVE: Final[int] = \
     0x0000000000000000000000000000000000000000000000000000000000000007
 
 assert (isinstance(A_CURVE and B_CURVE, int) and
-        is_hex(hex_from_int(A_CURVE, 32)) and
-        is_hex(hex_from_int(B_CURVE, 32)))
+        is_hex_encoded(hex_from_int(A_CURVE, 32)) and
+        is_hex_encoded(hex_from_int(B_CURVE, 32)))
 
 
 # The Generator point (G) is defined by:
@@ -155,15 +155,15 @@ Y_COORD_GENERATOR_POINT_CURVE: Final[int] = \
 
 assert (isinstance(X_COORD_GENERATOR_POINT_CURVE and
                    Y_COORD_GENERATOR_POINT_CURVE, int) and
-        is_hex(hex_from_int(X_COORD_GENERATOR_POINT_CURVE, 32)) and
-        is_hex(hex_from_int(Y_COORD_GENERATOR_POINT_CURVE, 32)))
+        is_hex_encoded(hex_from_int(X_COORD_GENERATOR_POINT_CURVE, 32)) and
+        is_hex_encoded(hex_from_int(Y_COORD_GENERATOR_POINT_CURVE, 32)))
 
 GENERATOR_POINT_CURVE: Final[Point] = (X_COORD_GENERATOR_POINT_CURVE,
                                        Y_COORD_GENERATOR_POINT_CURVE)
 
 assert (isinstance(GENERATOR_POINT_CURVE, tuple) and
-        is_hex(hex_from_int(GENERATOR_POINT_CURVE[0], 32)) and
-        is_hex(hex_from_int(GENERATOR_POINT_CURVE[1], 32)))
+        is_hex_encoded(hex_from_int(GENERATOR_POINT_CURVE[0], 32)) and
+        is_hex_encoded(hex_from_int(GENERATOR_POINT_CURVE[1], 32)))
 
 
 # The order (n) of Generator point and the Cofactor (h) are defined by:
@@ -174,8 +174,8 @@ H_CURVE: Final[int] = \
     0x0000000000000000000000000000000000000000000000000000000000000001
 
 assert (isinstance(N_CURVE and H_CURVE, int) and
-        is_hex(hex_from_int(N_CURVE, 32)) and
-        is_hex(hex_from_int(H_CURVE, 32)))
+        is_hex_encoded(hex_from_int(N_CURVE, 32)) and
+        is_hex_encoded(hex_from_int(H_CURVE, 32)))
 
 
 # The point that points to infinity on the Elliptic Curve is defined by:
@@ -857,7 +857,7 @@ def fast_scalar_multiplication(scalar: int, point: Point) -> Point:
     # *  -> We guarantee, as a warning in the code, that it will be
     # *     declared as Final and cannot be reassigned.
     scalar_bits: Final[ScalarBinary] = tuple(bin(scalar)[2:])
-    assert is_bin("".join(scalar_bits).zfill(256))
+    assert is_bin_encoded("".join(scalar_bits).zfill(256))
 
     # *     [ SCALAR MULTIPLICATION ]
 
