@@ -1,25 +1,81 @@
 {
-    "code-runner.executorMap": {
-      "python": "./venv/bin/python3 -OO"
+  "better-comments.tags": [
+    {
+      "tag": "!",
+      "color": "#FF2D00",
+      "strikethrough": false,
+      "underline": false,
+      "backgroundColor": "transparent",
+      "bold": false,
+      "italic": false
     },
-    "cSpell.enabled": false,
-    "cSpell.language": "en-US",
-    "editor.codeActionsOnSave": {
-      "source.organizeImports": true
+    {
+      "tag": "?",
+      "color": "#3498DB",
+      "strikethrough": false,
+      "underline": false,
+      "backgroundColor": "transparent",
+      "bold": false,
+      "italic": false
     },
-    "editor.formatOnSave": true,
-    "editor.formatOnSaveMode": "file",
-    "editor.rulers": [72, 79],
-    "editor.wordWrap": "on",
-    "python.analysis.typeCheckingMode": "basic",
-    "python.formatting.provider": "none",
-    "python.linting.enabled": true,
-    "python.linting.flake8Enabled": true,
-    "python.linting.mypyEnabled": true,
-    "python.linting.pylamaEnabled": true,
-    "python.linting.pylintEnabled": true,
-    "python.testing.unittestEnabled": false,
-    "[python]": {
-      "editor.defaultFormatter": "ms-python.autopep8"
+    {
+      "tag": "//",
+      "color": "#474747",
+      "strikethrough": true,
+      "underline": false,
+      "backgroundColor": "transparent",
+      "bold": false,
+      "italic": false
+    },
+    {
+      "tag": "todo",
+      "color": "#FF8C00",
+      "strikethrough": false,
+      "underline": false,
+      "backgroundColor": "transparent",
+      "bold": false,
+      "italic": false
+    },
+    {
+      "tag": "*",
+      "color": "#98C379",
+      "strikethrough": false,
+      "underline": false,
+      "backgroundColor": "transparent",
+      "bold": false,
+      "italic": false
+    },
+    {
+      "tag": "§",
+      "color": "#FBBC04",
+      "strikethrough": false,
+      "underline": false,
+      "backgroundColor": "transparent",
+      "bold": true,
+      "italic": false
     }
+  ],
+  "code-runner.executorMap": {
+    "python": "./venv/bin/python3 -OO"
+  },
+  "cSpell.enabled": false,
+  "cSpell.language": "en-US",
+  "editor.codeActionsOnSave": {
+    "source.organizeImports": true
+  },
+  "editor.formatOnSave": true,
+  "editor.formatOnSaveMode": "file",
+  "editor.rulers": [72, 79],
+  "editor.wordWrap": "on",
+  "python.analysis.typeCheckingMode": "basic",
+  "python.formatting.provider": "none",
+  "python.linting.enabled": true,
+  "python.linting.flake8Enabled": true,
+  "python.linting.mypyEnabled": true,
+  "python.linting.pylamaEnabled": true,
+  "python.linting.pylintEnabled": true,
+  "python.testing.unittestEnabled": false,
+  "[python]": {
+    "editor.defaultFormatter": "ms-python.autopep8"
   }
+}

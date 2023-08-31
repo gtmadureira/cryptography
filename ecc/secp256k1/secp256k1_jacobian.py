@@ -1,5 +1,5 @@
 """
-[ LICENSE ]  ( GNU GPLv3 )  :
+§  [ LICENSE ]  ( GNU GPLv3 )  :
 
 SECP256K1 at Jacobian Coordinates  -  Elliptic Curve Cryptography (ECC).
 Copyright (C)  2021 - 2023  Gustavo Madureira
@@ -18,7 +18,7 @@ You should have received a copy of the GNU General Public License along
 with this program. If not, see https://www.gnu.org/licenses/.
 
 
-[ ABOUT ]  :
+§  [ ABOUT ]  :
 
 Elliptic Curve Cryptography (ECC).
 Module for asymmetric cryptography with elliptic curve SECP256K1, using
@@ -272,7 +272,7 @@ def is_infinite(point: Point) -> bool:
 
 def is_on_curve(point: Point) -> bool:
     """
-    Returns True if the point lies on the Elliptic Curve, otherwise it
+    Returns True if the point lies on the Elliptic Curve, otherwise, it
     returns False.
     """
     assert isinstance(point, tuple)
@@ -378,7 +378,7 @@ def is_infinite_jacobian(jacobian: JacobianCoordinate) -> bool:
 def is_on_curve_jacobian(jacobian: JacobianCoordinate) -> bool:
     """
     Returns True if the point lies on the Elliptic Curve over Jacobian
-    coordinate, otherwise it returns False.
+    coordinates; otherwise, it returns False.
     """
     assert isinstance(jacobian, tuple)
     if is_infinite_jacobian(jacobian):
@@ -627,7 +627,7 @@ def jacobian_point_addition_mixed(  # pylint: disable=R0914
         jacobian_q: JacobianCoordinate) -> JacobianCoordinate:
     """
     Point addition (mixed) on the Elliptic Curve over Jacobian
-    coordinate (x, y, z) and affine form in Jacobian coordinates
+    coordinates (x, y, z) and affine form in Jacobian coordinates
     (x, y, 1).
 
     It adds Point-P with Point-Q.
@@ -823,10 +823,12 @@ def fast_scalar_multiplication(scalar: int, point: Point) -> Point:
     - Point is defined as Jacobian and Current is defined as
     New-Point.
     """
-    # *     [ SCALAR VERIFICATION ]
+    # §     [ SCALAR AND POINT VERIFICATION ]
 
     # *  -> Initial verification of arguments received by function
     # *     parameters.
+    # *  -> The {scalar} must be valid, and the {point} must lie on the
+    # *     Elliptic Curve.
     assert (isinstance(scalar, int) and
             isinstance(point, tuple) and
             is_on_curve(point))
@@ -848,23 +850,24 @@ def fast_scalar_multiplication(scalar: int, point: Point) -> Point:
                 is_on_curve(result))
         return result
 
-    # *     [ SCALAR PREPARATION ]
+    # §     [ SCALAR PREPARATION ]
 
-    # *  -> The next variable below, will be assigned from the convert
+    # *  -> The next variable below will be assigned after converting
     # *     the scalar (represented as an integer) to string objects as
-    # *     bits ("0" or "1"), and store them inside a
-    # *     Tuple["1", "0", "0", "1", ...].
+    # *     bits ("0" or "1"), and storing them inside a tuple.
+    # *     e.g: Tuple["1", "0", "0", "1", ...].
     # *  -> We guarantee, as a warning in the code, that it will be
     # *     declared as Final and cannot be reassigned.
     scalar_bits: Final[ScalarBinary] = tuple(bin(scalar)[2:])
     assert is_bin_encoded("".join(scalar_bits).zfill(256))
 
-    # *     [ SCALAR MULTIPLICATION ]
+    # §     [ SCALAR-POINT MULTIPLICATION ]
 
     # *  -> For-Loop below, working from left-to-right.
-    # *  -> "AND IGNORING" the Most Significant Bit (MSB) from incoming
-    # *     scalar. This is usually the bit farthest to the left, or the
-    # *     bit transmitted first in a sequence.
+    # *  -> "AND IGNORING" the Most Significant Bit (MSB) from the
+    # *     incoming scalar binary, that will be iterated over. This is
+    # *     usually the bit farthest to the left, or the bit transmitted
+    # *     first in a sequence.
     jacobian = to_jacobian(point)
     current = jacobian
     assert (isinstance(jacobian and current, tuple) and
