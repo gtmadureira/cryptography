@@ -64,7 +64,7 @@ ScalarBinary = Tuple[str, ...]
 
 # *****************************************************************************
 # *                                                                           *
-# *       Manipulation of Binary, Hexadecimal and Integer values.             *
+# *        The manipulation of binary, hexadecimal and integer values.        *
 # *                                                                           *
 # *****************************************************************************
 # *                                                                           *
@@ -113,10 +113,10 @@ def hex_from_int(_x: int, output_length_bytes: int) -> str:
 
 # *****************************************************************************
 # *                                                                           *
-# *      Mathematical Domain Parameters of the Elliptic Curve SECP256K1,      *
-# *      over a Finite Field (Fp).                                            *
+# *    The mathematical domain parameters of the elliptic curve SECP256K1,    *
+# *    over a finite field (Fp).                                              *
 # *                                                                           *
-# *      Source:   https://www.secg.org/sec2-v2.pdf                           *
+# *    Source:   https://www.secg.org/sec2-v2.pdf                             *
 # *                                                                           *
 # *****************************************************************************
 # *                                                                           *
@@ -125,7 +125,7 @@ def hex_from_int(_x: int, output_length_bytes: int) -> str:
 # *****************************************************************************
 
 
-# The Finite Field (Fp) is defined by:
+# The finite field (Fp) is defined by:
 FP_CURVE: Final[int] = \
     0xFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFEFFFFFC2F
 
@@ -133,7 +133,7 @@ assert (isinstance(FP_CURVE, int) and
         is_hex_encoded(hex_from_int(FP_CURVE, 32)))
 
 
-# The Elliptic Curve in short Weierstrass form ( y² = x³ + a⋅x + b )
+# The elliptic curve in short Weierstrass form ( y² = x³ + a⋅x + b )
 # over (Fp) is defined by the coefficients:
 A_CURVE: Final[int] = \
     0x0000000000000000000000000000000000000000000000000000000000000000
@@ -146,7 +146,7 @@ assert (isinstance(A_CURVE and B_CURVE, int) and
         is_hex_encoded(hex_from_int(B_CURVE, 32)))
 
 
-# The Generator point (G) is defined by:
+# The generator point (G) is defined by:
 X_COORD_GENERATOR_POINT_CURVE: Final[int] = \
     0x79BE667EF9DCBBAC55A06295CE870B07029BFCDB2DCE28D959F2815B16F81798
 
@@ -166,7 +166,8 @@ assert (isinstance(GENERATOR_POINT_CURVE, tuple) and
         is_hex_encoded(hex_from_int(GENERATOR_POINT_CURVE[1], 32)))
 
 
-# The order (n) of Generator point and the Cofactor (h) are defined by:
+# The order (n) of the generator point and the cofactor (h) are defined
+# by:
 N_CURVE: Final[int] = \
     0xFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFEBAAEDCE6AF48A03BBFD25E8CD0364141
 
@@ -178,7 +179,7 @@ assert (isinstance(N_CURVE and H_CURVE, int) and
         is_hex_encoded(hex_from_int(H_CURVE, 32)))
 
 
-# The point that points to infinity on the Elliptic Curve is defined by:
+# The point that points to infinity on the elliptic curve is defined by:
 X_COORD_POINT_INFINITY_CURVE: Final[int] = 0
 
 Y_COORD_POINT_INFINITY_CURVE: Final[int] = 0 if (B_CURVE != 0) else 1
@@ -192,8 +193,8 @@ POINT_INFINITY_CURVE: Final[Point] = (X_COORD_POINT_INFINITY_CURVE,
 assert isinstance(POINT_INFINITY_CURVE, tuple)
 
 
-# The point that points to infinity on the Elliptic Curve over Jacobian
-# coordinates is defined by:
+# The point that points to infinity on the elliptic curve over Jacobian
+# coordinate is defined by:
 X_COORD_POINT_INFINITY_JACOBIAN: Final[int] = 1
 
 Y_COORD_POINT_INFINITY_JACOBIAN: Final[int] = 1
@@ -219,14 +220,14 @@ assert isinstance(POINT_INFINITY_JACOBIAN, tuple)
 
 # *****************************************************************************
 # *                                                                           *
-# *        Elliptic Curve Arithmetic, using the Jacobian Coordinates,         *
-# *        over a Finite Field (Fp).                                          *
+# *       The elliptic curve arithmetic, using the Jacobian coordinate,       *
+# *       over a finite field (Fp).                                           *
 # *                                                                           *
-# *        Source:   https://www.hyperelliptic.org/EFD/                       *
+# *       Source:   https://www.hyperelliptic.org/EFD/                        *
 # *                                                                           *
-# *                  https://www.hyperelliptic.org/EFD/precomp.pdf            *
+# *                 https://www.hyperelliptic.org/EFD/precomp.pdf             *
 # *                                                                           *
-# *                  https://www.hyperelliptic.org/HEHCC/                     *
+# *                 https://www.hyperelliptic.org/HEHCC/                      *
 # *                                                                           *
 # *****************************************************************************
 # *                                                                           *
@@ -237,8 +238,8 @@ assert isinstance(POINT_INFINITY_JACOBIAN, tuple)
 
 def modular_inverse(_k: int, _p: int) -> int:
     """
-    Using Fermat's little theorem on the Elliptic Curve to find the
-    modular multiplicative inverse.
+    Fermat's little theorem on the elliptic curve to find the modular
+    multiplicative inverse.
 
     Returns the modular multiplicative inverse of {_k mod _p}. Where the
     only integer {_x} is defined such that {(_k ⋅ _x) mod _p = 1}.
@@ -259,8 +260,8 @@ def modular_inverse(_k: int, _p: int) -> int:
 
 def is_infinite(point: Point) -> bool:
     """
-    Returns True if the point is at infinity on the Elliptic Curve,
-    otherwise it returns False.
+    Returns True if the point is at infinity on the elliptic curve;
+    otherwise, it returns False.
     """
     assert isinstance(point, tuple)
     _xp, _yp = point
@@ -272,7 +273,7 @@ def is_infinite(point: Point) -> bool:
 
 def is_on_curve(point: Point) -> bool:
     """
-    Returns True if the point lies on the Elliptic Curve, otherwise, it
+    Returns True if the point lies on the elliptic curve; otherwise, it
     returns False.
     """
     assert isinstance(point, tuple)
@@ -289,7 +290,7 @@ def is_on_curve(point: Point) -> bool:
 
 def x_coordinate(point: Point) -> int:
     """
-    Refers to {x} coordinate of point, assuming it is not at infinity,
+    Refers to {x} coordinate of a point, assuming it is not at infinity,
     then returns {x}.
     """
     assert (isinstance(point, tuple) and
@@ -303,7 +304,7 @@ def x_coordinate(point: Point) -> int:
 
 def y_coordinate(point: Point) -> int:
     """
-    Refers to {y} coordinate of point, assuming it is not at infinity,
+    Refers to {y} coordinate of a point, assuming it is not at infinity,
     then returns {y}.
     """
     assert (isinstance(point, tuple) and
@@ -318,7 +319,7 @@ def y_coordinate(point: Point) -> int:
 def has_even_y(point: Point) -> bool:
     """
     Where the point is not at infinity, it returns True so that the
-    y-coordinate is an even value if {_yp mod 2 = 0}, otherwise it
+    y-coordinate is an even value if {_yp mod 2 = 0}; otherwise, it
     returns False.
     """
     assert (isinstance(point, tuple) and
@@ -364,8 +365,8 @@ def lift_x(_xp: int) -> Point:
 
 def is_infinite_jacobian(jacobian: JacobianCoordinate) -> bool:
     """
-    Returns True if the point is at infinity on the Elliptic Curve over
-    Jacobian coordinates, otherwise it returns False.
+    Returns True if the point is at infinity on the elliptic curve over
+    Jacobian coordinate; otherwise, it returns False.
     """
     assert isinstance(jacobian, tuple)
     _xp, _yp, _zp = jacobian
@@ -377,8 +378,8 @@ def is_infinite_jacobian(jacobian: JacobianCoordinate) -> bool:
 
 def is_on_curve_jacobian(jacobian: JacobianCoordinate) -> bool:
     """
-    Returns True if the point lies on the Elliptic Curve over Jacobian
-    coordinates; otherwise, it returns False.
+    Returns True if the point lies on the elliptic curve over Jacobian
+    coordinate; otherwise, it returns False.
     """
     assert isinstance(jacobian, tuple)
     if is_infinite_jacobian(jacobian):
@@ -396,7 +397,7 @@ def is_on_curve_jacobian(jacobian: JacobianCoordinate) -> bool:
 
 def is_affine_jacobian(jacobian: JacobianCoordinate) -> bool:
     """
-    Returns True if the point is affine form in Jacobian coordinates
+    Returns True if the point is the affine form in Jacobian coordinate
     (x, y, 1).
     """
     assert (isinstance(jacobian, tuple) and
@@ -410,10 +411,10 @@ def is_affine_jacobian(jacobian: JacobianCoordinate) -> bool:
 
 def to_jacobian(point: Point) -> JacobianCoordinate:
     """
-    Convert an affine point to Jacobian coordinates, or returns point at
-    infinity.
+    Convert an affine point to a Jacobian coordinate or return a point
+    at infinity.
 
-    A Jacobian coordinates is represented as (x, y, z).
+    A Jacobian coordinate is represented as (x, y, z).
     """
     assert (isinstance(point, tuple) and
             is_on_curve(point))
@@ -434,8 +435,8 @@ def to_jacobian(point: Point) -> JacobianCoordinate:
 
 def from_jacobian(jacobian: JacobianCoordinate) -> Point:
     """
-    Convert a Jacobian coordinates to affine point, or returns point at
-    infinity.
+    Convert a Jacobian coordinate to an affine point or return a point
+    at infinity.
 
     An affine point is represented as (x, y).
     """
@@ -467,7 +468,7 @@ def from_jacobian(jacobian: JacobianCoordinate) -> Point:
 def jacobian_point_doubling(  # pylint: disable=R0914
         jacobian_p: JacobianCoordinate) -> JacobianCoordinate:
     """
-    Point doubling on the Elliptic Curve over Jacobian coordinates
+    Point doubling on the elliptic curve over Jacobian coordinate
     (x, y, z).
 
     It doubles Point-P.
@@ -531,14 +532,14 @@ def jacobian_point_addition_affined_only(  # pylint: disable=R0914
         jacobian_p: JacobianCoordinate,
         jacobian_q: JacobianCoordinate) -> JacobianCoordinate:
     """
-    Point addition on the Elliptic Curve over Jacobian coordinates
-    (x, y, z), with both points with z = 1. That is , only with points
-    in affine space (x, y, 1).
+    Point addition on the elliptic curve over Jacobian coordinate
+    (x, y, z), with both points with z = 1, that is, only with points in
+    affine space (x, y, 1).
 
     It adds Point-P with Point-Q.
 
-    - Point-P is defined as Jacobian-P and Point-Q is defined as
-    Jacobian-Q.
+    - Point-P is defined as Jacobian-P, and Point-Q is defined as
+      Jacobian-Q.
     """
     assert (isinstance(jacobian_p and jacobian_q, tuple) and
             is_on_curve_jacobian(jacobian_p) and
@@ -579,15 +580,15 @@ def jacobian_point_addition_z_equals(  # pylint: disable=R0914
         jacobian_p: JacobianCoordinate,
         jacobian_q: JacobianCoordinate) -> JacobianCoordinate:
     """
-    Point addition on the Elliptic Curve over Jacobian coordinates
-    (x, y, z), with both points having z equal (Co-Z), but being != 1.
-    That is, both are not in affine space but sharing the same
+    Point addition on the elliptic curve over Jacobian coordinate
+    (x, y, z), with both points having z equal (Co-Z), but being != 1,
+    that is, both are not in affine space but share the same
     z-coordinate (x, y, z != 1).
 
     It adds Point-P with Point-Q.
 
-    - Point-P is defined as Jacobian-P and Point-Q is defined as
-    Jacobian-Q.
+    - Point-P is defined as Jacobian-P, and Point-Q is defined as
+      Jacobian-Q.
     """
     assert (isinstance(jacobian_p and jacobian_q, tuple) and
             is_on_curve_jacobian(jacobian_p) and
@@ -626,14 +627,14 @@ def jacobian_point_addition_mixed(  # pylint: disable=R0914
         jacobian_p: JacobianCoordinate,
         jacobian_q: JacobianCoordinate) -> JacobianCoordinate:
     """
-    Point addition (mixed) on the Elliptic Curve over Jacobian
-    coordinates (x, y, z) and affine form in Jacobian coordinates
+    Point addition (mixed) on the elliptic curve over Jacobian
+    coordinate (x, y, z), and the affine form in Jacobian coordinate
     (x, y, 1).
 
     It adds Point-P with Point-Q.
 
-    - Point-P is defined as Jacobian-P and Point-Q is defined as
-    Jacobian-Q.
+    - Point-P is defined as Jacobian-P, and Point-Q is defined as
+      Jacobian-Q.
     """
     assert (isinstance(jacobian_p and jacobian_q, tuple) and
             is_on_curve_jacobian(jacobian_p) and
@@ -677,13 +678,13 @@ def jacobian_point_addition(  # pylint: disable=R0911, R0914, R0915
         jacobian_p: JacobianCoordinate,
         jacobian_q: JacobianCoordinate) -> JacobianCoordinate:
     """
-    Point addition on the Elliptic Curve over Jacobian coordinates
+    Point addition on the elliptic curve over Jacobian coordinate
     (x, y, z).
 
     It adds Point-P with Point-Q.
 
-    - Point-P is defined as Jacobian-P and Point-Q is defined as
-    Jacobian-Q.
+    - Point-P is defined as Jacobian-P, and Point-Q is defined as
+      Jacobian-Q.
     """
     assert (isinstance(jacobian_p and jacobian_q, tuple) and
             is_on_curve_jacobian(jacobian_p) and
@@ -769,13 +770,13 @@ def jacobian_point_addition(  # pylint: disable=R0911, R0914, R0915
 
 def fast_point_addition(point_p: Point, point_q: Point) -> Point:
     """
-    Fast point addition on the Elliptic Curve over affine (x, y) to
-    Jacobian coordinates (x, y, z).
+    Fast point addition on the elliptic curve over affine (x, y) to
+    Jacobian coordinate (x, y, z).
 
     It adds Point-P with Point-Q.
 
-    - Point-P is defined as Jacobian-P and Point-Q is defined as
-    Jacobian-Q.
+    - Point-P is defined as Jacobian-P, and Point-Q is defined as
+      Jacobian-Q.
     """
     assert (isinstance(point_p and point_q, tuple) and
             is_on_curve(point_p) and
@@ -815,20 +816,20 @@ def fast_point_addition(point_p: Point, point_q: Point) -> Point:
 
 def fast_scalar_multiplication(scalar: int, point: Point) -> Point:
     """
-    Fast scalar multiplication of point on the Elliptic Curve over
-    affine (x, y) to Jacobian coordinates (x, y, z).
+    Fast scalar multiplication of point on the elliptic curve over the
+    affine (x, y) to Jacobian coordinate (x, y, z).
 
     It doubles Point-P and adds Point-P with Point-Q.
 
     - Point is defined as Jacobian and Current is defined as
-    New-Point.
+      New-Point.
     """
     # §     [ SCALAR AND POINT VERIFICATION ]
 
     # *  -> Initial verification of arguments received by function
     # *     parameters.
     # *  -> The {scalar} must be valid, and the {point} must lie on the
-    # *     Elliptic Curve.
+    # *     elliptic curve.
     assert (isinstance(scalar, int) and
             isinstance(point, tuple) and
             is_on_curve(point))
@@ -891,7 +892,7 @@ def fast_scalar_multiplication(scalar: int, point: Point) -> Point:
 
 # *****************************************************************************
 # *                                                                           *
-# *                Elliptic Curve Scalar Multiplication Test.                 *
+# *              The elliptic curve scalar multiplication test.               *
 # *                                                                           *
 # *****************************************************************************
 # *                                                                           *
@@ -904,8 +905,8 @@ if __name__ == "__main__":
 
     try:
         # *  -> Non-Singularity test ( 4⋅a³ + 27⋅b² != 0 ) for the
-        # *     Elliptic Curve, and also tests if the Generator point
-        # *     lies on the Elliptic Curve.
+        # *     elliptic curve, and also tests if the generator point
+        # *     lies on the elliptic curve.
         # *  -> The program will only start if it passes the tests.
         assert ((((- 16 * (4 * pow(A_CURVE, 3, FP_CURVE) + 27 *
                            pow(B_CURVE, 2, FP_CURVE))) % FP_CURVE) !=
@@ -954,7 +955,7 @@ if __name__ == "__main__":
             clear_screen()
             ELAPSED = perf_counter() - start
             print(f"""\033[92m
-            SECP256K1 at Jacobian Coordinates
+            SECP256K1 at Jacobian Coordinate
             Copyright (C) 2021 - 2023  Gustavo Madureira
             License GNU GPL-3.0-or-later <https://gnu.org/licenses/gpl.html>
             This program comes with ABSOLUTELY NO WARRANTY.
@@ -980,7 +981,7 @@ if __name__ == "__main__":
 [                                                                             ]
 [     *** Something bad happened and the program had to be shut down ***      ]
 [                                                                             ]
-[  Possible Errors:                                                           ]
+[  Possible Error :                                                           ]
 [                                                                             ]
 [ [X] Mathematical domain parameters of the elliptic curve may be incorrect ! ]
 [                                                                             ]
