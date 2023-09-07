@@ -36,27 +36,28 @@ For educational purposes only.
 Works on Python 3.8 or higher.
 
 
-    Source:
+    Source code:
 
             https://github.com/gtmadureira/cryptography/blob/main/ecc/secp256k1/secp256k1_jacobian.py
 
 
-    Author:
+    Author information:
 
+            Name:
             • Gustavo Madureira (gtmadureira@gmail.com)
-            • https://gtmadureira.github.io/
 
-
-    Author Nickname:
-
+            Nickname:
             • Hattoshi Hanzōmoto (hanzomoto_hattoshi@protonmail.com)
+
+            Webpage:
+            • https://gtmadureira.github.io/
 """
 
 
 from types import NoneType
 from typing import Final, Tuple
 
-# Type Hints.
+# Type hints.
 Point = Tuple[int, int]
 JacobianCoordinate = Tuple[int, int, int]
 ScalarBinary = Tuple[str, ...]
@@ -74,7 +75,7 @@ ScalarBinary = Tuple[str, ...]
 
 
 def is_bin_encoded(_bin: str) -> bool:
-    """Checks if the input string is an encoded binary value."""
+    """Check if the input string is an encoded binary value."""
     assert isinstance(_bin, str)
     try:
         result = bool(((int(_bin, 2) == 0) or int(_bin, 2)) and
@@ -86,7 +87,7 @@ def is_bin_encoded(_bin: str) -> bool:
 
 
 def is_hex_encoded(_hex: str) -> bool:
-    """Checks if the input string is an encoded hexadecimal value."""
+    """Check if the input string is an encoded hexadecimal value."""
     assert isinstance(_hex, str)
     try:
         result = bool(((int(_hex, 16) == 0) or int(_hex, 16)) and
@@ -98,7 +99,7 @@ def is_hex_encoded(_hex: str) -> bool:
 
 
 def hex_from_int(_x: int, output_length_bytes: int) -> str:
-    """Converts an integer to encoded hexadecimal string."""
+    """Converts an integer to an encoded hexadecimal string."""
     assert isinstance(_x and output_length_bytes, int)
     result = hex(_x)[2:].zfill(output_length_bytes * 2)
     assert (isinstance(result, str) and
@@ -133,8 +134,8 @@ assert (isinstance(FP_CURVE, int) and
         is_hex_encoded(hex_from_int(FP_CURVE, 32)))
 
 
-# The elliptic curve in short Weierstrass form ( y² = x³ + a⋅x + b )
-# over (Fp) is defined by the coefficients:
+# The elliptic curve in short Weierstrass form over a finite field (Fp)
+# ( y² ≡ x³ + a⋅x + b  mod Fp ) is defined by the coefficients {a,b}:
 A_CURVE: Final[int] = \
     0x0000000000000000000000000000000000000000000000000000000000000000
 
@@ -193,8 +194,8 @@ POINT_INFINITY_CURVE: Final[Point] = (X_COORD_POINT_INFINITY_CURVE,
 assert isinstance(POINT_INFINITY_CURVE, tuple)
 
 
-# The point that points to infinity on the elliptic curve over Jacobian
-# coordinate is defined by:
+# The point that points to infinity on the elliptic curve over the
+# Jacobian coordinate is defined by:
 X_COORD_POINT_INFINITY_JACOBIAN: Final[int] = 1
 
 Y_COORD_POINT_INFINITY_JACOBIAN: Final[int] = 1
@@ -228,6 +229,8 @@ assert isinstance(POINT_INFINITY_JACOBIAN, tuple)
 # *                 https://www.hyperelliptic.org/EFD/precomp.pdf             *
 # *                                                                           *
 # *                 https://www.hyperelliptic.org/HEHCC/                      *
+# *                                                                           *
+# *                 https://www.math.umd.edu/~lcw/ellipticcurves.html         *
 # *                                                                           *
 # *****************************************************************************
 # *                                                                           *
@@ -366,7 +369,7 @@ def lift_x(_xp: int) -> Point:
 def is_infinite_jacobian(jacobian: JacobianCoordinate) -> bool:
     """
     Returns True if the point is at infinity on the elliptic curve over
-    Jacobian coordinate; otherwise, it returns False.
+    the Jacobian coordinate; otherwise, it returns False.
     """
     assert isinstance(jacobian, tuple)
     _xp, _yp, _zp = jacobian
@@ -378,8 +381,8 @@ def is_infinite_jacobian(jacobian: JacobianCoordinate) -> bool:
 
 def is_on_curve_jacobian(jacobian: JacobianCoordinate) -> bool:
     """
-    Returns True if the point lies on the elliptic curve over Jacobian
-    coordinate; otherwise, it returns False.
+    Returns True if the point lies on the elliptic curve over the
+    Jacobian coordinate; otherwise, it returns False.
     """
     assert isinstance(jacobian, tuple)
     if is_infinite_jacobian(jacobian):
@@ -397,8 +400,8 @@ def is_on_curve_jacobian(jacobian: JacobianCoordinate) -> bool:
 
 def is_affine_jacobian(jacobian: JacobianCoordinate) -> bool:
     """
-    Returns True if the point is the affine form in Jacobian coordinate
-    (x, y, 1).
+    Returns True if the point is the affine form in the Jacobian
+    coordinate (x, y, 1).
     """
     assert (isinstance(jacobian, tuple) and
             is_on_curve_jacobian(jacobian) and not
@@ -468,7 +471,7 @@ def from_jacobian(jacobian: JacobianCoordinate) -> Point:
 def jacobian_point_doubling(  # pylint: disable=R0914
         jacobian_p: JacobianCoordinate) -> JacobianCoordinate:
     """
-    Point doubling on the elliptic curve over Jacobian coordinate
+    Point doubling on the elliptic curve over the Jacobian coordinate
     (x, y, z).
 
     It doubles Point-P.
@@ -532,7 +535,7 @@ def jacobian_point_addition_affined_only(  # pylint: disable=R0914
         jacobian_p: JacobianCoordinate,
         jacobian_q: JacobianCoordinate) -> JacobianCoordinate:
     """
-    Point addition on the elliptic curve over Jacobian coordinate
+    Point addition on the elliptic curve over the Jacobian coordinate
     (x, y, z), with both points with z = 1, that is, only with points in
     affine space (x, y, 1).
 
@@ -580,7 +583,7 @@ def jacobian_point_addition_z_equals(  # pylint: disable=R0914
         jacobian_p: JacobianCoordinate,
         jacobian_q: JacobianCoordinate) -> JacobianCoordinate:
     """
-    Point addition on the elliptic curve over Jacobian coordinate
+    Point addition on the elliptic curve over the Jacobian coordinate
     (x, y, z), with both points having z equal (Co-Z), but being != 1,
     that is, both are not in affine space but share the same
     z-coordinate (x, y, z != 1).
@@ -627,8 +630,8 @@ def jacobian_point_addition_mixed(  # pylint: disable=R0914
         jacobian_p: JacobianCoordinate,
         jacobian_q: JacobianCoordinate) -> JacobianCoordinate:
     """
-    Point addition (mixed) on the elliptic curve over Jacobian
-    coordinate (x, y, z), and the affine form in Jacobian coordinate
+    Point addition (mixed) on the elliptic curve over the Jacobian
+    coordinate (x, y, z), and the affine form in the Jacobian coordinate
     (x, y, 1).
 
     It adds Point-P with Point-Q.
@@ -678,7 +681,7 @@ def jacobian_point_addition(  # pylint: disable=R0911, R0914, R0915
         jacobian_p: JacobianCoordinate,
         jacobian_q: JacobianCoordinate) -> JacobianCoordinate:
     """
-    Point addition on the elliptic curve over Jacobian coordinate
+    Point addition on the elliptic curve over the Jacobian coordinate
     (x, y, z).
 
     It adds Point-P with Point-Q.
@@ -770,8 +773,8 @@ def jacobian_point_addition(  # pylint: disable=R0911, R0914, R0915
 
 def fast_point_addition(point_p: Point, point_q: Point) -> Point:
     """
-    Fast point addition on the elliptic curve over affine (x, y) to
-    Jacobian coordinate (x, y, z).
+    Fast point addition on the elliptic curve over the affine form
+    (x, y) to the Jacobian coordinate (x, y, z).
 
     It adds Point-P with Point-Q.
 
@@ -817,7 +820,7 @@ def fast_point_addition(point_p: Point, point_q: Point) -> Point:
 def fast_scalar_multiplication(scalar: int, point: Point) -> Point:
     """
     Fast scalar multiplication of point on the elliptic curve over the
-    affine (x, y) to Jacobian coordinate (x, y, z).
+    affine (x, y) to the Jacobian coordinate (x, y, z).
 
     It doubles Point-P and adds Point-P with Point-Q.
 
@@ -904,9 +907,9 @@ def fast_scalar_multiplication(scalar: int, point: Point) -> Point:
 if __name__ == "__main__":
 
     try:
-        # *  -> Non-Singularity test ( 4⋅a³ + 27⋅b² != 0 ) for the
-        # *     elliptic curve, and also tests if the generator point
-        # *     lies on the elliptic curve.
+        # *  -> Non-Singularity test ( 4⋅a³ + 27⋅b² mod p != 0 mod p )
+        # *     for the elliptic curve, and also tests if the generator
+        # *     point lies on the elliptic curve.
         # *  -> The program will only start if it passes the tests.
         assert ((((- 16 * (4 * pow(A_CURVE, 3, FP_CURVE) + 27 *
                            pow(B_CURVE, 2, FP_CURVE))) % FP_CURVE) !=
@@ -919,7 +922,7 @@ if __name__ == "__main__":
 
         from colorama import just_fix_windows_console
 
-        # Get ANSI escapes from color scheme to work on Windows
+        # Get ANSI escapes from the color scheme to work on the Windows
         # operating system.
         just_fix_windows_console()
 
@@ -932,7 +935,8 @@ if __name__ == "__main__":
             # Screen clear command for Windows operating system.
             if system_type == "nt":
                 run_command("cls")
-            # Screen clear command for macOS/Linux operating system.
+            # Screen clear command for Linux/UNIX and macOS operating
+            # systems.
             elif system_type == "posix":
                 run_command("clear")
 
