@@ -147,7 +147,8 @@ assert (isinstance(A_CURVE and B_CURVE, int) and
         is_hex_encoded(hex_from_int(B_CURVE, 32)))
 
 
-# The generator point (G) is defined by:
+# The generator point (G), over the affine coordinate ( x , y ), is
+# defined by:
 X_COORD_GENERATOR_POINT_CURVE: Final[int] = \
     0x79BE667EF9DCBBAC55A06295CE870B07029BFCDB2DCE28D959F2815B16F81798
 
@@ -180,7 +181,8 @@ assert (isinstance(N_CURVE and H_CURVE, int) and
         is_hex_encoded(hex_from_int(H_CURVE, 32)))
 
 
-# The point that points to infinity on the elliptic curve is defined by:
+# The point that points to infinity on the elliptic curve, over the
+# affine coordinate ( x , y ), is defined by:
 X_COORD_POINT_INFINITY_CURVE: Final[int] = 0
 
 Y_COORD_POINT_INFINITY_CURVE: Final[int] = 0 if (B_CURVE != 0) else 1
@@ -194,8 +196,8 @@ POINT_INFINITY_CURVE: Final[Point] = (X_COORD_POINT_INFINITY_CURVE,
 assert isinstance(POINT_INFINITY_CURVE, tuple)
 
 
-# The point that points to infinity on the elliptic curve over the
-# Jacobian coordinate is defined by:
+# The point that points to infinity on the elliptic curve, over the
+# Jacobian coordinate ( x : y : z ), is defined by:
 X_COORD_POINT_INFINITY_JACOBIAN: Final[int] = 1
 
 Y_COORD_POINT_INFINITY_JACOBIAN: Final[int] = 1
@@ -293,8 +295,8 @@ def is_on_curve(point: Point) -> bool:
 
 def x_coordinate(point: Point) -> int:
     """
-    Refers to {x} coordinate of a point, assuming it is not at infinity,
-    then returns {x}.
+    Refers to {x} coordinate of a point, over the affine coordinate
+    ( x , y ), assuming it is not at infinity, then returns {x}.
     """
     assert (isinstance(point, tuple) and
             is_on_curve(point) and not
@@ -307,8 +309,8 @@ def x_coordinate(point: Point) -> int:
 
 def y_coordinate(point: Point) -> int:
     """
-    Refers to {y} coordinate of a point, assuming it is not at infinity,
-    then returns {y}.
+    Refers to {y} coordinate of a point, over the affine coordinate
+    ( x , y ) assuming it is not at infinity, then returns {y}.
     """
     assert (isinstance(point, tuple) and
             is_on_curve(point) and not
@@ -321,7 +323,8 @@ def y_coordinate(point: Point) -> int:
 
 def has_even_y(point: Point) -> bool:
     """
-    Where the point is not at infinity, it returns True so that the
+    Where the point is not at infinity, the same being represented as
+    the affine coordinate ( x , y ), it returns True so that the
     y-coordinate is an even value if {_yp mod 2 = 0}; otherwise, it
     returns False.
     """
@@ -337,7 +340,8 @@ def has_even_y(point: Point) -> bool:
 def lift_x(_xp: int) -> Point:
     """
     Given an x-coordinate on the curve, return a corresponding affine
-    point for which the y-coordinate is even:
+    point, the same being represented as the affine coordinate
+    ( x , y ), for which the y-coordinate is even:
 
 
     {x(point) = x}
@@ -369,7 +373,7 @@ def lift_x(_xp: int) -> Point:
 def is_infinite_jacobian(jacobian: JacobianCoordinate) -> bool:
     """
     Returns True if the point is at infinity on the elliptic curve over
-    the Jacobian coordinate; otherwise, it returns False.
+    the Jacobian coordinate ( x : y : z ); otherwise, it returns False.
     """
     assert isinstance(jacobian, tuple)
     _xp, _yp, _zp = jacobian
@@ -382,7 +386,7 @@ def is_infinite_jacobian(jacobian: JacobianCoordinate) -> bool:
 def is_on_curve_jacobian(jacobian: JacobianCoordinate) -> bool:
     """
     Returns True if the point lies on the elliptic curve over the
-    Jacobian coordinate; otherwise, it returns False.
+    Jacobian coordinate ( x : y : z ); otherwise, it returns False.
     """
     assert isinstance(jacobian, tuple)
     if is_infinite_jacobian(jacobian):
@@ -401,7 +405,7 @@ def is_on_curve_jacobian(jacobian: JacobianCoordinate) -> bool:
 def is_affine_jacobian(jacobian: JacobianCoordinate) -> bool:
     """
     Returns True if the point is the affine form in the Jacobian
-    coordinate (x, y, 1).
+    coordinate ( x : y : 1 ).
     """
     assert (isinstance(jacobian, tuple) and
             is_on_curve_jacobian(jacobian) and not
@@ -414,10 +418,8 @@ def is_affine_jacobian(jacobian: JacobianCoordinate) -> bool:
 
 def to_jacobian(point: Point) -> JacobianCoordinate:
     """
-    Convert an affine point to a Jacobian coordinate or return a point
-    at infinity.
-
-    A Jacobian coordinate is represented as (x, y, z).
+    Convert an affine point ( x , y ) to a Jacobian coordinate
+    ( x : y : z ), or return a point at infinity.
     """
     assert (isinstance(point, tuple) and
             is_on_curve(point))
@@ -438,10 +440,8 @@ def to_jacobian(point: Point) -> JacobianCoordinate:
 
 def from_jacobian(jacobian: JacobianCoordinate) -> Point:
     """
-    Convert a Jacobian coordinate to an affine point or return a point
-    at infinity.
-
-    An affine point is represented as (x, y).
+    Convert a Jacobian coordinate ( x : y : z ) to an affine point
+    ( x , y ), or return a point at infinity.
     """
     assert (isinstance(jacobian, tuple) and
             is_on_curve_jacobian(jacobian))
@@ -472,7 +472,7 @@ def jacobian_point_doubling(  # pylint: disable=R0914
         jacobian_p: JacobianCoordinate) -> JacobianCoordinate:
     """
     Point doubling on the elliptic curve over the Jacobian coordinate
-    (x, y, z).
+    ( x : y : z ).
 
     It doubles Point-P.
 
@@ -536,8 +536,8 @@ def jacobian_point_addition_affined_only(  # pylint: disable=R0914
         jacobian_q: JacobianCoordinate) -> JacobianCoordinate:
     """
     Point addition on the elliptic curve over the Jacobian coordinate
-    (x, y, z), with both points with z = 1, that is, only with points in
-    affine space (x, y, 1).
+    ( x : y : z ), with both points with z = 1, that is, only with
+    points in affine space ( x : y : 1 ).
 
     It adds Point-P with Point-Q.
 
@@ -584,9 +584,9 @@ def jacobian_point_addition_z_equals(  # pylint: disable=R0914
         jacobian_q: JacobianCoordinate) -> JacobianCoordinate:
     """
     Point addition on the elliptic curve over the Jacobian coordinate
-    (x, y, z), with both points having z equal (Co-Z), but being != 1,
-    that is, both are not in affine space but share the same
-    z-coordinate (x, y, z != 1).
+    ( x : y : z ), with both points having z equal (Co-Z), but
+    being != 1, that is, both are not in affine space but share the same
+    z-coordinate ( x : y : z != 1 ).
 
     It adds Point-P with Point-Q.
 
@@ -631,8 +631,8 @@ def jacobian_point_addition_mixed(  # pylint: disable=R0914
         jacobian_q: JacobianCoordinate) -> JacobianCoordinate:
     """
     Point addition (mixed) on the elliptic curve over the Jacobian
-    coordinate (x, y, z), and the affine form in the Jacobian coordinate
-    (x, y, 1).
+    coordinate ( x : y : z ), and the affine form in the Jacobian
+    coordinate ( x : y : 1 ).
 
     It adds Point-P with Point-Q.
 
@@ -682,7 +682,7 @@ def jacobian_point_addition(  # pylint: disable=R0911, R0914, R0915
         jacobian_q: JacobianCoordinate) -> JacobianCoordinate:
     """
     Point addition on the elliptic curve over the Jacobian coordinate
-    (x, y, z).
+    ( x : y : z ).
 
     It adds Point-P with Point-Q.
 
@@ -774,7 +774,7 @@ def jacobian_point_addition(  # pylint: disable=R0911, R0914, R0915
 def fast_point_addition(point_p: Point, point_q: Point) -> Point:
     """
     Fast point addition on the elliptic curve over the affine form
-    (x, y) to the Jacobian coordinate (x, y, z).
+    ( x , y ) to the Jacobian coordinate ( x : y : z ).
 
     It adds Point-P with Point-Q.
 
@@ -820,7 +820,7 @@ def fast_point_addition(point_p: Point, point_q: Point) -> Point:
 def fast_scalar_multiplication(scalar: int, point: Point) -> Point:
     """
     Fast scalar multiplication of point on the elliptic curve over the
-    affine (x, y) to the Jacobian coordinate (x, y, z).
+    affine ( x , y ) to the Jacobian coordinate ( x : y : z ).
 
     It doubles Point-P and adds Point-P with Point-Q.
 
